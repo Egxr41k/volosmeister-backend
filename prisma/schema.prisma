@@ -1,47 +1,45 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
-model Product {
-  id          Int        @id @default(autoincrement())
-  name        String
-  imageSrc    String
-  description String
-  category    String
-  count       Int
-  newPrice    Int
-  oldPrice    Int
-  features    Feature[]
-  properties  Property[]
+model Feature {
+  id          Int      @id(map: "PK_Features") @default(autoincrement()) @map("Id")
+  title       String   @db.NVarChar(Max) @map("Title")
+  imageSrc    String   @db.NVarChar(Max) @map("ImageSrc")
+  description String   @db.NVarChar(Max) @map("Description")
+  productId   Int      @default(0, map: "DF__Feature__Product__7D439ABD") @map("ProductId")
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Features_Products_ProductId")
 
-  isAvailable Boolean @default(true)
-  isSale      Boolean @default(false)
+  @@index([productId], map: "IX_Features_ProductId")
+  @@map("Features")
 }
 
-model Feature {
-  id          Int     @id @default(autoincrement())
-  productId   Int     @map("product_id")
-  product     Product @relation(fields: [productId], references: [id])
-  title       String
-  imageSrc    String
-  description String
+model Product {
+  id          Int          @id(map: "PK_Products") @default(autoincrement()) @map("Id")
+  name        String       @db.NVarChar(Max)  @map("Name")
+  description String       @db.NVarChar(Max)  @map("Description")
+  count       Int          @map("Count")
+  imageSrc    String       @default("N'", map: "DF__Products__ImageS__0A9D95DB") @db.NVarChar(Max) @map("ImageSrc")
+  newPrice    Int          @default(0, map: "DF__Products__NewPri__0B91BA14") @map("NewPrice")
+  oldPrice    Int          @default(0, map: "DF__Products__OldPri__0C85DE4D") @map("OldPrice")
+  category    String       @default("N'", map: "DF__Products__Catego__2739D489") @db.NVarChar(Max) @map("Category")
+  features    Feature[]    
+  properties  Property[]   
+  @@map("Products")
 }
 
 model Property {
-  id        Int     @id @default(autoincrement())
-  productId Int     @map("product_id")
-  product   Product @relation(fields: [productId], references: [id])
-  title     String
-  value     String
+  id        Int      @id(map: "PK_Properties") @default(autoincrement()) @map("Id")
+  name      String   @db.NVarChar(Max) @map("Name")
+  value     String   @db.NVarChar(Max) @map("Value")
+  productId Int      @default(0, map: "DF__Property__Produc__7C4F7684") @map("ProductId")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Properties_Products_ProductId")
+
+  @@index([productId], map: "IX_Properties_ProductId")
+  @@map("Properties")
 }
