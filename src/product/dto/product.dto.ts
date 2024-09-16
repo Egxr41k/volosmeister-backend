@@ -1,8 +1,22 @@
-import { Feature, Product, Property } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+import { IsNumber, IsOptional, IsString } from 'class-validator'
 
-interface ProductDto extends Product {
-	features: Feature[]
-	properties: Property[]
+export class ProductDto implements Prisma.ProductUpdateInput {
+	@IsString()
+	name: string
+
+	@IsNumber()
+	price: number
+
+	@IsOptional()
+	@IsString()
+	description: string
+
+	@IsString()
+	image: string
+
+	@IsNumber()
+	categoryId: number
 }
 
 export default ProductDto

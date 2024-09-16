@@ -8,48 +8,60 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement()) @map("Id")
+  id        Int      @id @default(autoincrement()) @map("Id")
+  createAt  DateTime @default(now()) @map("CreatedAt")
+  updatedAt DateTime @updatedAt @map("UpdatedAt")
 
   email    String @unique @map("Email")
   password String @map("Password")
 
-  name       String @unique @map("Name")
-  avatarPath String @map("AvatarPath")
-  phone      String @default("") @map("Phone")
-
-  favorites UsersFavoriteProducts[]
-}
-
-model UsersFavoriteProducts {
-  user   User @relation(fields: [userId], references: [id])
-  userId Int  @map("userId")
-
-  productId Int     @map("ProductId")
-  product   Product @relation(fields: [productId], references: [id])
-
-  @@id([userId, productId])
+  name       String    @unique @map("Name")
+  avatarPath String    @map("AvatarPath")
+  phone      String    @default("") @map("Phone")
+  favorites  Product[]
 }
 
 model Product {
-  id          Int                     @id(map: "PK_Products") @default(autoincrement()) @map("Id")
-  name        String                  @map("Name") @db.NVarChar(Max)
-  description String                  @map("Description") @db.NVarChar(Max)
-  count       Int                     @map("Count")
-  imageSrc    String                  @default("N'", map: "DF__Products__ImageS__0A9D95DB") @map("ImageSrc") @db.NVarChar(Max)
-  newPrice    Int                     @default(0, map: "DF__Products__NewPri__0B91BA14") @map("NewPrice")
-  oldPrice    Int                     @default(0, map: "DF__Products__OldPri__0C85DE4D") @map("OldPrice")
-  category    String                  @default("N'", map: "DF__Products__Catego__2739D489") @map("Category") @db.NVarChar(Max)
-  features    Feature[]
-  properties  Property[]
-  users       UsersFavoriteProducts[]
+  id        Int      @id(map: "PK_Products") @default(autoincrement()) @map("Id")
+  createAt  DateTime @default(now()) @map("CreatedAt")
+  updatedAt DateTime @updatedAt @map("UpdatedAt")
+
+  name        String @unique @map("Name")
+  slug        String @unique @map("Slug")
+  description String @map("Description") @db.NVarChar(Max)
+  image       String @default("N'", map: "DF__Products__ImageS__0A9D95DB") @map("ImageSrc") @db.NVarChar(Max)
+  price       Int    @default(0, map: "DF__Products__NewPri__0B91BA14") @map("NewPrice")
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?      @map("CategoryId")
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?  @map("UserId")
+
+  features   Feature[]
+  properties Property[]
 
   @@map("Products")
 }
 
+model Category {
+  id        Int      @id @default(autoincrement()) @map("Id")
+  createAt  DateTime @default(now()) @map("CreatedAt")
+  updatedAt DateTime @updatedAt @map("UpdatedAt")
+
+  name String @unique
+  slug String @unique
+
+  products Product[]
+}
+
 model Feature {
-  id          Int     @id(map: "PK_Features") @default(autoincrement()) @map("Id")
-  title       String  @map("Title") @db.NVarChar(Max)
-  imageSrc    String  @map("ImageSrc") @db.NVarChar(Max)
+  id        Int      @id(map: "PK_Features") @default(autoincrement()) @map("Id")
+  createAt  DateTime @default(now()) @map("CreatedAt")
+  updatedAt DateTime @updatedAt @map("UpdatedAt")
+
+  name        String  @map("Title") @db.NVarChar(Max)
+  image       String  @map("ImageSrc") @db.NVarChar(Max)
   description String  @map("Description") @db.NVarChar(Max)
   productId   Int     @default(0, map: "DF__Feature__Product__7D439ABD") @map("ProductId")
   product     Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Features_Products_ProductId")
@@ -59,11 +71,14 @@ model Feature {
 }
 
 model Property {
-  id        Int     @id(map: "PK_Properties") @default(autoincrement()) @map("Id")
-  name      String  @map("Name") @db.NVarChar(Max)
-  value     String  @map("Value") @db.NVarChar(Max)
-  productId Int     @default(0, map: "DF__Property__Produc__7C4F7684") @map("ProductId")
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Properties_Products_ProductId")
+  id        Int      @id(map: "PK_Properties") @default(autoincrement()) @map("Id")
+  createAt  DateTime @default(now()) @map("CreatedAt")
+  updatedAt DateTime @updatedAt @map("UpdatedAt")
+
+  name        String  @map("Name") @db.NVarChar(Max)
+  description String  @map("Value") @db.NVarChar(Max)
+  productId   Int     @default(0, map: "DF__Property__Produc__7C4F7684") @map("ProductId")
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Properties_Products_ProductId")
 
   @@index([productId], map: "IX_Properties_ProductId")
   @@map("Properties")

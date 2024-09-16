@@ -1,129 +1,186 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { Product } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+import slug from 'slug'
+import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
-import ProductDto from './dto/product.dto'
+import { EnumProductSort, GetAllProductDto } from './dto/get-all.products.dto'
+import { ProductDto } from './dto/product.dto'
+import {
+	productReturnObject,
+	productReturnObjectFullest
+} from './return-product.object'
 
 @Injectable()
 export class ProductService {
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private prisma: PrismaService,
+		private paginationService: PaginationService
+	) {}
 
-	async getProducts() {
-		return this.prisma.product.findMany()
+	async getAll(dto: GetAllProductDto = {}) {
+		const { sort, searchItem } = dto
+
+		const prismaSort: Prisma.ProductOrderByWithRelationInput[] = []
+
+		if (sort === EnumProductSort.LOW_PRICE) prismaSort.push({ price: 'asc' })
+		else if (sort === EnumProductSort.HIGH_PRICE)
+			prismaSort.push({ price: 'desc' })
+		else if (sort === EnumProductSort.OLDEST)
+			prismaSort.push({ createAt: 'asc' })
+		else prismaSort.push({ createAt: 'desc' })
+
+		const prismaSearchTermFilter: Prisma.ProductWhereInput = searchItem
+			? {
+					OR: [
+						{
+							category: {
+								name: {
+									contains: searchItem
+									//mode: 'insensitive'
+								}
+							},
+							name: {
+								contains: searchItem
+								// mode: 'insensitive'
+							},
+							description: {
+								contains: searchItem
+								// mode: 'insensitive'
+							}
+						}
+					]
+				}
+			: {}
+
+		const { perPage, skip } = this.paginationService.getPagination(dto)
+
+		const products = await this.prisma.product.findMany({
+			where: prismaSearchTermFilter,
+			orderBy: prismaSort,
+			skip,
+			take: perPage,
+			select: productReturnObject
+		})
+
+		return {
+			products,
+			length: await this.prisma.product.count({
+				where: prismaSearchTermFilter
+			})
+		}
 	}
 
-	async getProduct(id: number) {
+	async byId(id: number) {
 		const product = await this.prisma.product.findUnique({
-			where: { id },
-			include: {
-				properties: true,
-				features: true
-			}
+			where: {
+				id
+			},
+			select: productReturnObjectFullest
 		})
 
 		if (!product) {
-			throw new NotFoundException(`Product with ID ${id} not found`)
+			throw new Error('Product not found')
 		}
 
 		return product
 	}
 
-	async createProduct() {
-		return this.prisma.product.create({
-			data: {} as Product
+	async bySlug(slug: string) {
+		const products = await this.prisma.product.findUnique({
+			where: {
+				slug
+			},
+			select: productReturnObjectFullest
 		})
+
+		if (!products) {
+			throw new NotFoundException('Products not found')
+		}
+
+		return products
 	}
 
-	async updateProduct(dto: ProductDto) {
-		const { features, properties, id, ...data } = dto
-
-		const product = await this.prisma.product.findUnique({
-			where: { id },
-			include: {
-				properties: true,
-				features: true
-			}
+	async byCategory(categorySlug: string) {
+		const products = await this.prisma.product.findMany({
+			where: {
+				category: {
+					slug: categorySlug
+				}
+			},
+			select: productReturnObjectFullest
 		})
 
-		if (!product) {
-			throw new NotFoundException(`Product with ID ${id} not found`)
+		if (!products) {
+			throw new NotFoundException('Products not found')
 		}
 
-		// Handle Features
-		for (const feature of features) {
-			const { id, ...featureData } = feature
-			const existingFeature = product.features.find(x => x.id === feature.id)
+		return products
+	}
 
-			if (!existingFeature) {
-				await this.prisma.feature.create({ data: featureData })
-			} else {
-				await this.prisma.feature.update({
-					where: { id },
-					data: featureData
-				})
-			}
+	async getSimilar(id: number) {
+		const currentProduct = await this.byId(id)
+
+		if (!currentProduct) {
+			throw new NotFoundException('Current product not found!')
 		}
 
-		// Delete Features not in the updated list
-		for (const existingFeature of product.features) {
-			const featureExists = features.some(x => x.id === existingFeature.id)
-			if (!featureExists) {
-				await this.prisma.feature.delete({
-					where: { id: existingFeature.id }
-				})
-			}
-		}
+		const products = await this.prisma.product.findMany({
+			where: {
+				category: {
+					name: currentProduct.name
+				},
+				NOT: {
+					id: currentProduct.id
+				}
+			},
+			orderBy: {
+				createAt: 'desc'
+			},
+			select: productReturnObject
+		})
 
-		// Handle Properties
-		for (const property of properties) {
-			const { id, ...propertyData } = property
-			const existingProperty = product.properties.find(
-				x => x.id === property.id
-			)
+		return products
+	}
 
-			if (!existingProperty) {
-				await this.prisma.property.create({ data: propertyData })
-			} else {
-				await this.prisma.property.update({
-					where: { id },
-					data: propertyData
-				})
-			}
-		}
+	// TODO do create method
+	// async create() {
+	//   return this.prisma.product.create({
+	//     data: {
+	//       name: "",
+	//       description: "",
+	//       images: [],
+	//       price: 0
+	//     },
+	//   });
+	// }
 
-		// Delete Properties not in the updated list
-		for (const existingProperty of product.properties) {
-			const propertyExists = properties.some(x => x.id === existingProperty.id)
-			if (!propertyExists) {
-				await this.prisma.property.delete({
-					where: { id: existingProperty.id }
-				})
-			}
-		}
+	async update(id: number, dto: ProductDto) {
+		const { description, image, price, name, categoryId } = dto
 
 		return this.prisma.product.update({
-			where: { id },
-			data: data
+			where: {
+				id
+			},
+			data: {
+				description,
+				image,
+				price,
+				name,
+				slug: slug(name),
+				category: {
+					connect: {
+						id: categoryId
+					}
+				}
+			}
 		})
 	}
 
-	async deleteProduct(id: number) {
-		const product = await this.prisma.product.findUnique({
-			where: { id },
-			include: { properties: true, features: true }
+	async delete(id: number) {
+		return this.prisma.product.delete({
+			where: {
+				id
+			}
 		})
-
-		if (!product) {
-			throw new NotFoundException(`Product with ID ${id} not found`)
-		}
-
-		await this.prisma.feature.deleteMany({
-			where: { productId: id }
-		})
-
-		await this.prisma.property.deleteMany({
-			where: { productId: id }
-		})
-
-		await this.prisma.product.delete({ where: { id } })
 	}
 }

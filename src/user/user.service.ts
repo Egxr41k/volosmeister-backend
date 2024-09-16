@@ -21,20 +21,18 @@ export class UserService {
 			select: {
 				...returnUserObject,
 				favorites: {
-					where: { userId: id },
 					select: {
-						product: {
+						id: true,
+						name: true,
+						price: true,
+						image: true,
+						slug: true,
+						category: {
 							select: {
-								id: true,
-								name: true,
-								description: true,
-								count: true,
-								imageSrc: true,
-								newPrice: true,
-								oldPrice: true,
-								category: true
+								slug: true
 							}
 						}
+						//reviews: true
 					}
 				},
 				...selectObject
@@ -82,11 +80,7 @@ export class UserService {
 			throw new NotFoundException('User not found!')
 		}
 
-		const favorites = await this.prisma.usersFavoriteProducts.findMany({
-			where: { userId }
-		})
-
-		const isExist = favorites.some(product => product.productId === productId)
+		const isExist = user.favorites.some(product => product.id === productId)
 
 		await this.prisma.user.update({
 			where: {
