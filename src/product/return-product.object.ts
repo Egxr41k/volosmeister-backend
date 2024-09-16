@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
-//import { returnReviewObject } from 'src/review/return-review.object';
-// import { returnCategoryObject } from 'src/category/return-category.object'
+import { returnCategoryObject } from 'src/category/return-category.object'
+import { returnReviewObject } from 'src/review/return-review.object'
 
 export const productReturnObject: Prisma.ProductSelect = {
 	image: true,
@@ -10,8 +10,8 @@ export const productReturnObject: Prisma.ProductSelect = {
 	price: true,
 	createAt: true,
 	slug: true,
-	category: true, //{ select: returnCategoryObject },
-	//reviews: { select: returnReviewObject },
+	category: { select: returnCategoryObject },
+	reviews: { select: returnReviewObject },
 	features: true,
 	properties: true
 }

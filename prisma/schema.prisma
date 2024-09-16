@@ -15,10 +15,13 @@ model User {
   email    String @unique @map("Email")
   password String @map("Password")
 
-  name       String    @unique @map("Name")
-  avatarPath String    @map("AvatarPath")
-  phone      String    @default("") @map("Phone")
-  favorites  Product[]
+  name       String @unique @map("Name")
+  avatarPath String @map("AvatarPath")
+
+  phone String @default("") @map("Phone")
+
+  reviews   Review[]
+  favorites Product[]
 }
 
 model Product {
@@ -32,14 +35,16 @@ model Product {
   image       String @default("N'", map: "DF__Products__ImageS__0A9D95DB") @map("ImageSrc") @db.NVarChar(Max)
   price       Int    @default(0, map: "DF__Products__NewPri__0B91BA14") @map("NewPrice")
 
+  //orderItems OrderItem[]
+  reviews    Review[]
+  features   Feature[]
+  properties Property[]
+
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId Int?      @map("CategoryId")
 
   user   User? @relation(fields: [userId], references: [id])
   userId Int?  @map("UserId")
-
-  features   Feature[]
-  properties Property[]
 
   @@map("Products")
 }
@@ -53,6 +58,21 @@ model Category {
   slug String @unique
 
   products Product[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  createAt  DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  rating Int
+  text   String
+
+  user   User? @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  userId Int?  @map("UserId")
+
+  product   Product @relation(fields: [productId], references: [id], onUpdate: NoAction)
+  productId Int     @map("ProductId")
 }
 
 model Feature {
