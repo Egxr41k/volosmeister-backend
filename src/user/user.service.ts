@@ -25,7 +25,7 @@ export class UserService {
 						id: true,
 						name: true,
 						price: true,
-						image: true,
+						images: true,
 						slug: true,
 						category: {
 							select: {

@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { IsNumber, IsOptional, IsString } from 'class-validator'
+import { ArrayMinSize, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class ProductDto implements Prisma.ProductUpdateInput {
 	@IsString()
@@ -12,8 +12,9 @@ export class ProductDto implements Prisma.ProductUpdateInput {
 	@IsString()
 	description: string
 
-	@IsString()
-	image: string
+	@IsString({ each: true })
+	@ArrayMinSize(1)
+	images: string[]
 
 	@IsNumber()
 	categoryId: number

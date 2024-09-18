@@ -155,7 +155,7 @@ export class ProductService {
 	// }
 
 	async update(id: number, dto: ProductDto) {
-		const { description, image, price, name, categoryId } = dto
+		const { description, images, price, name, categoryId } = dto
 
 		return this.prisma.product.update({
 			where: {
@@ -163,7 +163,7 @@ export class ProductService {
 			},
 			data: {
 				description,
-				image,
+				images,
 				price,
 				name,
 				slug: slug(name),
