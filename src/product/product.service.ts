@@ -35,17 +35,17 @@ export class ProductService {
 						{
 							category: {
 								name: {
-									contains: searchItem
-									//mode: 'insensitive'
+									contains: searchItem,
+									mode: 'insensitive'
 								}
 							},
 							name: {
-								contains: searchItem
-								// mode: 'insensitive'
+								contains: searchItem,
+								mode: 'insensitive'
 							},
 							description: {
-								contains: searchItem
-								// mode: 'insensitive'
+								contains: searchItem,
+								mode: 'insensitive'
 							}
 						}
 					]

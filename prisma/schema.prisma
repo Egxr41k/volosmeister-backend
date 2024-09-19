@@ -36,9 +36,7 @@ model Product {
   images      String[]
 
   //orderItems OrderItem[]
-  reviews    Review[]
-  features   Feature[]
-  properties Property[]
+  reviews Review[]
 
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId Int?      @map("category_id")
@@ -68,31 +66,6 @@ model Review {
 
   user   User @relation(fields: [userId], references: [id])
   userId Int  @map("user_id")
-
-  product   Product @relation(fields: [productId], references: [id])
-  productId Int     @map("product_id")
-}
-
-model Feature {
-  id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  name        String
-  image       String
-  description String
-
-  product   Product @relation(fields: [productId], references: [id])
-  productId Int     @map("product_id")
-}
-
-model Property {
-  id        Int      @id(map: "PK_Properties") @default(autoincrement()) @map("Id")
-  createAt  DateTime @default(now()) @map("CreatedAt")
-  updatedAt DateTime @updatedAt @map("UpdatedAt")
-
-  name        String
-  description String
 
   product   Product @relation(fields: [productId], references: [id])
   productId Int     @map("product_id")

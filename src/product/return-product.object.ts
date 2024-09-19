@@ -11,9 +11,7 @@ export const productReturnObject: Prisma.ProductSelect = {
 	createAt: true,
 	slug: true,
 	category: { select: returnCategoryObject },
-	reviews: { select: returnReviewObject },
-	features: true,
-	properties: true
+	reviews: { select: returnReviewObject }
 }
 
 export const productReturnObjectFullest: Prisma.ProductSelect = {
