@@ -45,8 +45,8 @@ export class CategoryController {
 	@HttpCode(200)
 	@Auth()
 	@Post()
-	async create() {
-		return this.categoryService.create()
+	async create(@Body() dto: CategoryDto) {
+		return this.categoryService.create(dto)
 	}
 
 	@UsePipes(new ValidationPipe())
