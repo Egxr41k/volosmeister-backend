@@ -5,6 +5,7 @@ import {
 	Get,
 	HttpCode,
 	Param,
+	Post,
 	Put,
 	Query,
 	UsePipes,
@@ -12,7 +13,7 @@ import {
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { GetAllProductDto } from './dto/get-all.products.dto'
-import ProductDto from './dto/product.dto'
+import { UpdateProductDto } from './dto/update-product.dto'
 import { ProductService } from './product.service'
 
 @Controller('products')
@@ -23,6 +24,11 @@ export class ProductController {
 	@Get()
 	async getAll(@Query() queryDto: GetAllProductDto) {
 		return this.productService.getAll(queryDto)
+	}
+
+	@Get(':id')
+	async getById(@Param('id') id: string) {
+		return this.productService.byId(+id)
 	}
 
 	@Get('similar/:id')
@@ -40,19 +46,19 @@ export class ProductController {
 		return this.productService.byCategory(categorySlug)
 	}
 
-	// @UsePipes(new ValidationPipe())
-	// @Post()
-	// @Auth()
-	// @HttpCode(200)
-	// async createProduct() {
-	//   return this.productService.create();
-	// }
+	@UsePipes(new ValidationPipe())
+	@Post()
+	@Auth()
+	@HttpCode(200)
+	async createProduct() {
+		return this.productService.create()
+	}
 
 	@UsePipes(new ValidationPipe())
 	@Put(':id')
 	@Auth()
 	@HttpCode(200)
-	async updateProduct(@Param('id') id: string, @Body() dto: ProductDto) {
+	async updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {
 		return this.productService.update(+id, dto)
 	}
 

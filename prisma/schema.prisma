@@ -29,20 +29,50 @@ model Product {
   createAt  DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  name        String   @unique
-  slug        String   @unique
+  name        String @unique
+  slug        String @unique
   description String
-  price       Int
-  images      String[]
+  //count       Int
+
+  price  Int
+  images String[]
 
   orderItems OrderItem[]
   reviews    Review[]
+
+  features   Feature[]
+  properties Property[]
 
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId Int?      @map("category_id")
 
   user   User? @relation(fields: [userId], references: [id])
   userId Int?  @map("user_id")
+}
+
+model Feature {
+  id        Int      @id @default(autoincrement())
+  createAt  DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  title       String
+  image       String
+  description String
+
+  productId Int     @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Property {
+  id        Int      @id @default(autoincrement())
+  createAt  DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  name  String
+  value String
+
+  productId Int     @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Category {
@@ -95,7 +125,7 @@ model Order {
 
   status EnumOrderStatus @default(PENDING)
 
-  items  OrderItem[]
+  items OrderItem[]
   total Int
 
   user   User @relation(fields: [userId], references: [id])

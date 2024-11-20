@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import slug from 'slug'
+import { FeatureService } from 'src/feature/feature.service'
 import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
+import { PropertyService } from 'src/property/property.service'
 import { EnumProductSort, GetAllProductDto } from './dto/get-all.products.dto'
-import { ProductDto } from './dto/product.dto'
+import { UpdateProductDto } from './dto/update-product.dto'
 import {
 	productReturnObject,
 	productReturnObjectFullest
@@ -14,7 +16,9 @@ import {
 export class ProductService {
 	constructor(
 		private prisma: PrismaService,
-		private paginationService: PaginationService
+		private paginationService: PaginationService,
+		private featureService: FeatureService,
+		private propertyService: PropertyService
 	) {}
 
 	async getAll(dto: GetAllProductDto = {}) {
@@ -142,20 +146,23 @@ export class ProductService {
 		return products
 	}
 
-	// TODO do create method
-	// async create() {
-	//   return this.prisma.product.create({
-	//     data: {
-	//       name: "",
-	//       description: "",
-	//       images: [],
-	//       price: 0
-	//     },
-	//   });
-	// }
+	async create() {
+		return this.prisma.product.create({
+			data: {
+				name: '',
+				description: '',
+				images: [],
+				price: 0,
+				slug: ''
+			}
+		})
+	}
 
-	async update(id: number, dto: ProductDto) {
+	async update(id: number, dto: UpdateProductDto) {
 		const { description, images, price, name, categoryId } = dto
+
+		await this.featureService.updateMany(id, dto.features)
+		await this.propertyService.updateMany(id, dto.properties)
 
 		return this.prisma.product.update({
 			where: {

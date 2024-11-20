@@ -1,5 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { returnCategoryObject } from 'src/category/return-category.object'
+import { featureReturnObject } from 'src/feature/return-feature.object'
+import { propertyReturnObject } from 'src/property/return-property.object'
 import { returnReviewObject } from 'src/review/return-review.object'
 
 export const productReturnObject: Prisma.ProductSelect = {
@@ -11,7 +13,9 @@ export const productReturnObject: Prisma.ProductSelect = {
 	createAt: true,
 	slug: true,
 	category: { select: returnCategoryObject },
-	reviews: { select: returnReviewObject }
+	reviews: { select: returnReviewObject },
+	features: { select: featureReturnObject },
+	properties: { select: propertyReturnObject }
 }
 
 export const productReturnObjectFullest: Prisma.ProductSelect = {
