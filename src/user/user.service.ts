@@ -31,8 +31,8 @@ export class UserService {
 							select: {
 								slug: true
 							}
-						}
-						//reviews: true
+						},
+						reviews: true
 					}
 				},
 				...selectObject

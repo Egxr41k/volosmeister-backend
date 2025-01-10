@@ -4,14 +4,15 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
 import { CategoryModule } from './category/category.module'
+import { FeatureModule } from './feature/feature.module'
 import { OrderModule } from './order/order.module'
 import { PaginationModule } from './pagination/pagination.module'
+import { PrismaService } from './prisma.service'
 import { ProductModule } from './product/product.module'
+import { PropertyModule } from './property/property.module'
 import { ReviewModule } from './review/review.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UserModule } from './user/user.module'
-import { FeatureModule } from './feature/feature.module';
-import { PropertyModule } from './property/property.module';
 
 @Module({
 	imports: [
@@ -28,6 +29,6 @@ import { PropertyModule } from './property/property.module';
 		PropertyModule
 	],
 	controllers: [AppController],
-	providers: [AppService]
+	providers: [AppService, PrismaService]
 })
 export class AppModule {}

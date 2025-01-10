@@ -19,6 +19,7 @@ export class ReviewController {
 
 	@UsePipes(new ValidationPipe())
 	@Get()
+	@Auth('admin')
 	async getAll() {
 		return this.reviewService.getAll()
 	}

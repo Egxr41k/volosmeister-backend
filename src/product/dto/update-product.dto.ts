@@ -2,7 +2,7 @@ import { Type } from 'class-transformer'
 import { IsArray, IsOptional, ValidateNested } from 'class-validator'
 import { FeatureDto } from 'src/feature/feature.dto'
 import { PropertyDto } from 'src/property/property.dto'
-import ProductDto from './product.dto'
+import { ProductDto } from './product.dto'
 
 export class UpdateProductDto extends ProductDto {
 	@IsOptional()

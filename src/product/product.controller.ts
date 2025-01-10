@@ -12,7 +12,7 @@ import {
 	ValidationPipe
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
-import { GetAllProductDto } from './dto/get-all.products.dto'
+import { GetAllProductDto } from './dto/get-all.product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { ProductService } from './product.service'
 
@@ -26,14 +26,15 @@ export class ProductController {
 		return this.productService.getAll(queryDto)
 	}
 
-	@Get(':id')
-	async getById(@Param('id') id: string) {
-		return this.productService.byId(+id)
-	}
-
 	@Get('similar/:id')
 	async getSimilar(@Param('id') id: string) {
 		return this.productService.getSimilar(+id)
+	}
+
+	@Get(':id')
+	@Auth('admin')
+	async getById(@Param('id') id: string) {
+		return this.productService.byId(+id)
 	}
 
 	@Get('by-slug/:slug')
@@ -48,7 +49,7 @@ export class ProductController {
 
 	@UsePipes(new ValidationPipe())
 	@Post()
-	@Auth()
+	@Auth('admin')
 	@HttpCode(200)
 	async createProduct() {
 		return this.productService.create()
@@ -56,7 +57,7 @@ export class ProductController {
 
 	@UsePipes(new ValidationPipe())
 	@Put(':id')
-	@Auth()
+	@Auth('admin')
 	@HttpCode(200)
 	async updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {
 		return this.productService.update(+id, dto)
@@ -64,7 +65,7 @@ export class ProductController {
 
 	@UsePipes(new ValidationPipe())
 	@Delete(':id')
-	@Auth()
+	@Auth('admin')
 	@HttpCode(200)
 	async deleteProduct(@Param('id') id: string) {
 		return this.productService.delete(+id)
