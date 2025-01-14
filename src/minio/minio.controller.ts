@@ -1,4 +1,12 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common'
+import {
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+	UploadedFile,
+	UseInterceptors
+} from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { MinioService } from './minio.service'
 
@@ -9,8 +17,24 @@ export class MinioController {
 	@Post('image')
 	@UseInterceptors(FileInterceptor('file'))
 	async uploadImage(@UploadedFile() file: Express.Multer.File) {
-		const uniqueKey = `${Date.now()}-${file.originalname}`
-		const imageUrl = await this.minioService.uploadFile(file.buffer, uniqueKey)
-		return { message: 'File uploaded successfully', imageUrl }
+		console.log(file)
+		await this.minioService.createBucketIfNotExists()
+		return await this.minioService.uploadFile(file)
+	}
+
+	@Get()
+	async getBuckets() {
+		return 'hello minio'
+	}
+
+	@Get('image/:fileName')
+	async getImage(@Param('fileName') fileName: string) {
+		return await this.minioService.getFileUrl(fileName)
+	}
+
+	@Delete('image/:fileName')
+	async deleteImage(@Param('fileName') fileName: string) {
+		await this.minioService.deleteFile(fileName)
+		return fileName
 	}
 }

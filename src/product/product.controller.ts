@@ -19,7 +19,7 @@ import { ProductDto } from './dto/product.dto'
 
 @Controller('products')
 export class ProductController {
-	constructor(private readonly productService: ProductService) { }
+	constructor(private readonly productService: ProductService) {}
 
 	@UsePipes(new ValidationPipe())
 	@Get()
@@ -65,7 +65,7 @@ export class ProductController {
 	}
 
 	@UsePipes(new ValidationPipe())
-	@Put(':id')
+	@Put('update/:id')
 	@Auth('admin')
 	@HttpCode(200)
 	async updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {

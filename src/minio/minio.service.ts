@@ -1,32 +1,48 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import * as Minio from 'minio'
 
 @Injectable()
 export class MinioService {
-	private s3: S3Client
-	private bucketName = 'images'
+	private minioClient: Minio.Client
+	private bucketName: string
 
-	constructor() {
-		this.s3 = new S3Client({
-			endpoint: 'http://localhost:9000', // URL MinIO
-			region: 'us-east-1', // Стандартный регион
-			credentials: {
-				accessKeyId: 'admin', // Ваш логин MinIO
-				secretAccessKey: 'admin123' // Ваш пароль MinIO
-			}
+	constructor(private readonly configService: ConfigService) {
+		this.minioClient = new Minio.Client({
+			endPoint: this.configService.get('MINIO_ENDPOINT'),
+			port: Number(this.configService.get('MINIO_PORT')),
+			useSSL: this.configService.get('MINIO_USE_SSL') === 'true',
+			accessKey: this.configService.get('MINIO_ACCESS_KEY'),
+			secretKey: this.configService.get('MINIO_SECRET_KEY')
 		})
+		this.bucketName = this.configService.get('MINIO_BUCKET_NAME')
 	}
 
-	// Метод для загрузки файлов
-	async uploadFile(buffer: Buffer, key: string) {
-		const command = new PutObjectCommand({
-			Bucket: this.bucketName,
-			Key: key, // Уникальное имя файла
-			Body: buffer, // Содержимое файла
-			ContentType: 'image/jpeg' // Тип контента
-		})
+	async createBucketIfNotExists() {
+		const bucketExists = await this.minioClient.bucketExists(this.bucketName)
+		if (!bucketExists) {
+			await this.minioClient.makeBucket(this.bucketName, 'eu-west-1')
+		}
+	}
 
-		await this.s3.send(command)
-		return `http://localhost:9000/${this.bucketName}/${key}`
+	async uploadFile(file: Express.Multer.File) {
+		const fileName = `${Date.now()}-${file.originalname}`
+		await this.minioClient.putObject(
+			this.bucketName,
+			fileName,
+			file.buffer,
+			file.size
+		)
+		const imageUrl = `http://localhost:9000/${this.bucketName}/${fileName}`
+		return { message: 'File uploaded successfully', imageUrl }
+	}
+
+	async getFileUrl(fileName: string) {
+		return await this.minioClient.presignedUrl('GET', this.bucketName, fileName)
+	}
+
+	async deleteFile(fileName: string) {
+		await this.minioClient.removeObject(this.bucketName, fileName)
+		return fileName
 	}
 }

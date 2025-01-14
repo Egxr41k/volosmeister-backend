@@ -13,10 +13,11 @@ import { PropertyModule } from './property/property.module'
 import { ReviewModule } from './review/review.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UserModule } from './user/user.module'
+import { MinioModule } from './minio/minio.module'
 
 @Module({
 	imports: [
-		ConfigModule.forRoot(),
+		ConfigModule.forRoot({ isGlobal: true }),
 		AuthModule,
 		UserModule,
 		ProductModule,
@@ -26,7 +27,8 @@ import { UserModule } from './user/user.module'
 		StatisticsModule,
 		PaginationModule,
 		FeatureModule,
-		PropertyModule
+		PropertyModule,
+		MinioModule
 	],
 	controllers: [AppController],
 	providers: [AppService, PrismaService]
