@@ -6,13 +6,15 @@ import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
 import { PropertyService } from 'src/property/property.service'
 import { convertToNumber } from 'src/utils/convert-to-number'
-import { slug } from 'src/utils/slug'
 import { EnumProductSort, GetAllProductDto } from './dto/get-all.product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import {
 	productReturnObject,
 	productReturnObjectFullest
 } from './return-product.object'
+import { ProductDto } from './dto/product.dto'
+import { slug } from 'src/utils/slug'
+import { CategoryDto } from 'src/category/category.dto'
 
 @Injectable()
 export class ProductService {
@@ -22,7 +24,7 @@ export class ProductService {
 		private categoryService: CategoryService,
 		private featureService: FeatureService,
 		private propertyService: PropertyService
-	) {}
+	) { }
 
 	async getAll(dto: GetAllProductDto = {}) {
 		const filters = this.createFilter(dto)
@@ -225,22 +227,40 @@ export class ProductService {
 		return products
 	}
 
-	async create() {
+	async create(dto: ProductDto) {
+		const { description, images, price, name, categoryName } = dto
+		const category = await this.categoryService.createIfNotExist(categoryName)
+
+		const existingProduct = await this.prisma.product.findUnique({
+			where: { name }
+		})
+
+		if (existingProduct) {
+			throw new Error(`Product with name ${name} already exists`)
+		}
+
 		return this.prisma.product.create({
 			data: {
-				name: '',
-				description: '',
-				images: [],
-				price: 0,
-				slug: ''
+				name: name,
+				description: description,
+				images: images,
+				price: price,
+				slug: slug(name),
+				categoryId: category.id
 			}
 		})
 	}
 
-	async update(id: number, dto: UpdateProductDto) {
-		const { description, images, price, name, categoryId } = dto
+	async createMany(dtos: ProductDto[]) {
+		for (const dto of dtos) {
+			await this.create(dto)
+		}
+	}
 
-		await this.categoryService.byId(categoryId)
+	async update(id: number, dto: UpdateProductDto) {
+		const { description, images, price, name, categoryName } = dto
+
+		const category = await this.categoryService.createIfNotExist(categoryName)
 
 		await this.featureService.updateMany(id, dto.features)
 		await this.propertyService.updateMany(id, dto.properties)
@@ -257,7 +277,7 @@ export class ProductService {
 				slug: slug(name),
 				category: {
 					connect: {
-						id: categoryId
+						id: category.id
 					}
 				}
 			}

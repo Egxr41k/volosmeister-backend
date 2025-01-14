@@ -15,10 +15,11 @@ import { Auth } from 'src/auth/decorators/auth.decorator'
 import { GetAllProductDto } from './dto/get-all.product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { ProductService } from './product.service'
+import { ProductDto } from './dto/product.dto'
 
 @Controller('products')
 export class ProductController {
-	constructor(private readonly productService: ProductService) {}
+	constructor(private readonly productService: ProductService) { }
 
 	@UsePipes(new ValidationPipe())
 	@Get()
@@ -48,11 +49,19 @@ export class ProductController {
 	}
 
 	@UsePipes(new ValidationPipe())
+	@Post('create-many')
+	@Auth('admin')
+	@HttpCode(200)
+	async createManyProducts(@Body() dtos: ProductDto[]) {
+		return this.productService.createMany(dtos)
+	}
+
+	@UsePipes(new ValidationPipe())
 	@Post()
 	@Auth('admin')
 	@HttpCode(200)
-	async createProduct() {
-		return this.productService.create()
+	async createProduct(@Body() dto: ProductDto) {
+		return this.productService.create(dto)
 	}
 
 	@UsePipes(new ValidationPipe())

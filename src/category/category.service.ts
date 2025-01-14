@@ -50,13 +50,26 @@ export class CategoryService {
 		return category
 	}
 
-	async create() {
-		return this.prisma.category.create({
+	async create(dto: CategoryDto) {
+		return await this.prisma.category.create({
 			data: {
-				name: '',
-				slug: ''
+				name: dto.name,
+				slug: slug(dto.name)
 			}
 		})
+	}
+
+	async createIfNotExist(categoryName: string) {
+		const existingCateory = await this.prisma.category.findUnique({
+			where: {
+				slug: slug(categoryName)
+			},
+		})
+		if (existingCateory) {
+			return existingCateory
+		} else {
+			return await this.create({name: categoryName} as CategoryDto)
+		}
 	}
 
 	async update(id: number, dto: CategoryDto) {
