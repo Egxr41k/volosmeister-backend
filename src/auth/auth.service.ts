@@ -60,6 +60,7 @@ export class AuthService {
 			data: {
 				email: dto.email,
 				name: dto.email,
+				isAdmin: dto.email === 'admin@example.com',
 				avatarPath: '',
 				phone: '',
 				password: await hash(dto.password)

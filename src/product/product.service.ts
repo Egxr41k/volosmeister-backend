@@ -24,7 +24,7 @@ export class ProductService {
 		private categoryService: CategoryService,
 		private featureService: FeatureService,
 		private propertyService: PropertyService
-	) { }
+	) {}
 
 	async getAll(dto: GetAllProductDto = {}) {
 		const filters = this.createFilter(dto)
@@ -229,7 +229,6 @@ export class ProductService {
 
 	async create(dto: ProductDto) {
 		const { description, images, price, name, categoryName } = dto
-		const category = await this.categoryService.createIfNotExist(categoryName)
 
 		const existingProduct = await this.prisma.product.findUnique({
 			where: { name }
@@ -238,6 +237,8 @@ export class ProductService {
 		if (existingProduct) {
 			throw new Error(`Product with name ${name} already exists`)
 		}
+
+		const category = await this.categoryService.createIfNotExist(categoryName)
 
 		return this.prisma.product.create({
 			data: {
@@ -251,14 +252,16 @@ export class ProductService {
 		})
 	}
 
-	async createMany(dtos: ProductDto[]) {
-		for (const dto of dtos) {
-			await this.create(dto)
-		}
-	}
-
 	async update(id: number, dto: UpdateProductDto) {
 		const { description, images, price, name, categoryName } = dto
+
+		const existingProduct = await this.prisma.product.findUnique({
+			where: { name }
+		})
+
+		if (!existingProduct) {
+			throw new Error(`Product with name ${name} already exists`)
+		}
 
 		const category = await this.categoryService.createIfNotExist(categoryName)
 

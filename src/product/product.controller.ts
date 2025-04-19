@@ -49,14 +49,6 @@ export class ProductController {
 	}
 
 	@UsePipes(new ValidationPipe())
-	@Post('create-many')
-	@Auth('admin')
-	@HttpCode(200)
-	async createManyProducts(@Body() dtos: ProductDto[]) {
-		return this.productService.createMany(dtos)
-	}
-
-	@UsePipes(new ValidationPipe())
 	@Post()
 	@Auth('admin')
 	@HttpCode(200)

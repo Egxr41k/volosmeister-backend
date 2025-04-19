@@ -26,14 +26,13 @@ export class MinioService {
 	}
 
 	async uploadFile(file: Express.Multer.File) {
-		const fileName = `${Date.now()}-${file.originalname}`
 		await this.minioClient.putObject(
 			this.bucketName,
-			fileName,
+			file.originalname,
 			file.buffer,
 			file.size
 		)
-		const imageUrl = `http://localhost:9000/${this.bucketName}/${fileName}`
+		const imageUrl = `http://localhost:9000/${this.bucketName}/${file.originalname}`
 		return { message: 'File uploaded successfully', imageUrl }
 	}
 
