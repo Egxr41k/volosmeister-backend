@@ -48,6 +48,9 @@ model Product {
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId Int?      @map("category_id")
 
+  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  manufacturerId Int?          @map("manufacturer_id")
+
   user   User? @relation(fields: [userId], references: [id])
   userId Int?  @map("user_id")
 }
@@ -78,6 +81,17 @@ model Property {
 }
 
 model Category {
+  id        Int      @id @default(autoincrement())
+  createAt  DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  name String @unique
+  slug String @unique
+
+  products Product[]
+}
+
+model Manufacturer {
   id        Int      @id @default(autoincrement())
   createAt  DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

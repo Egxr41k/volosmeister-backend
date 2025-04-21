@@ -14,6 +14,7 @@ import { ReviewModule } from './review/review.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UserModule } from './user/user.module'
 import { MinioModule } from './minio/minio.module'
+import { ManufacturerModule } from './manufacturer/manufacturer.module';
 
 @Module({
 	imports: [
@@ -31,7 +32,8 @@ import { MinioModule } from './minio/minio.module'
 		PaginationModule,
 		FeatureModule,
 		PropertyModule,
-		MinioModule
+		MinioModule,
+		ManufacturerModule
 	],
 	controllers: [AppController],
 	providers: [AppService, PrismaService]

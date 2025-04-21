@@ -13,9 +13,9 @@ import {
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { GetAllProductDto } from './dto/get-all.product.dto'
+import { ProductDto } from './dto/product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { ProductService } from './product.service'
-import { ProductDto } from './dto/product.dto'
 
 @Controller('products')
 export class ProductController {
@@ -49,7 +49,7 @@ export class ProductController {
 	}
 
 	@UsePipes(new ValidationPipe())
-	@Post()
+	@Post('create')
 	@Auth('admin')
 	@HttpCode(200)
 	async createProduct(@Body() dto: ProductDto) {
