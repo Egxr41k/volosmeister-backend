@@ -23,6 +23,21 @@ export class CategoryController {
 		return this.categoryService.getAll()
 	}
 
+	@Get('root')
+	async getRoot() {
+		return this.categoryService.getRoot()
+	}
+
+	@Get('children/:parentId')
+	async getChildren(@Param('parentId') parentId: string) {
+		return this.categoryService.getChildren(+parentId)
+	}
+
+	@Get('chain/:id')
+	async getChain(@Param('id') id: string) {
+		return this.categoryService.getChain(+id)
+	}
+
 	@Get('by-slug/:slug')
 	async getBySlug(@Param('slug') slug: string) {
 		return this.categoryService.bySlug(slug)

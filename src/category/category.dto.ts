@@ -1,6 +1,9 @@
-import { IsString } from 'class-validator'
+import { IsOptional, IsString } from 'class-validator'
 
 export class CategoryDto {
 	@IsString()
 	name: string
+
+	@IsOptional()
+	parentId: number | null
 }
