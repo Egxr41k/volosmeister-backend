@@ -39,6 +39,10 @@ model Product {
   price  Int
   images String[]
 
+  instructionForUse String   @map("instruction_for_use")
+  availableSizes    Int[]    @map("available_sizes")
+  ingredients       String[]
+
   orderItems OrderItem[]
   reviews    Review[]
 
