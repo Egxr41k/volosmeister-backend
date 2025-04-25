@@ -15,6 +15,7 @@ import { StatisticsModule } from './statistics/statistics.module'
 import { UserModule } from './user/user.module'
 import { MinioModule } from './minio/minio.module'
 import { ManufacturerModule } from './manufacturer/manufacturer.module';
+import { DataModule } from './data/data.module';
 
 @Module({
 	imports: [
@@ -33,7 +34,8 @@ import { ManufacturerModule } from './manufacturer/manufacturer.module';
 		FeatureModule,
 		PropertyModule,
 		MinioModule,
-		ManufacturerModule
+		ManufacturerModule,
+		DataModule
 	],
 	controllers: [AppController],
 	providers: [AppService, PrismaService]
