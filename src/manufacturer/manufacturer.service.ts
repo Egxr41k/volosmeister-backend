@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import slug from 'slug'
 import { PrismaService } from 'src/prisma.service'
+import { slug } from 'src/utils/slug'
 import { ManufacturerDto } from './manufacturer.dto'
 import { returnManufacturerObject } from './return-maufacturer.object'
 

@@ -26,7 +26,7 @@ export class JsonService {
 
 	async readFileAs<T>(outputDir: string, name: JsonFileName): Promise<T> {
 		const filename = JSON_FILE_NAMES[name]
-		const filePath = join(outputDir, filename)
+		const filePath = join(outputDir, name)
 		const data = await readFile(filePath)
 		return await this.JsonParseAs<T>(data)
 	}

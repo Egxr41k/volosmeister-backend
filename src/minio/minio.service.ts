@@ -72,7 +72,7 @@ export class MinioService {
 			file.size
 		)
 		const imageUrl = `http://localhost:9000/${this.bucketName}/${file.originalname}`
-		return { message: 'File uploaded successfully', imageUrl }
+		return imageUrl
 	}
 
 	async getFileUrl(fileName: string) {

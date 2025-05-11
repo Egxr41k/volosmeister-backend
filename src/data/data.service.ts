@@ -17,7 +17,7 @@ export class DataService {
 
 		const imageUrls = await Promise.all(
 			images.map(async image => ({
-				...(await this.minioService.uploadFile(image.file)),
+				imageUrl: await this.minioService.uploadFile(image.file),
 				name: image.name
 			}))
 		)
@@ -39,7 +39,7 @@ export class DataService {
 			}))
 		})
 
-		return {}
+		return { categoriesData, manufacturersData, productsData }
 	}
 
 	async export() {

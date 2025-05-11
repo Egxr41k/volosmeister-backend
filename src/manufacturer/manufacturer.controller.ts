@@ -14,7 +14,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator'
 import { ManufacturerDto } from './manufacturer.dto'
 import { ManufacturerService } from './manufacturer.service'
 
-@Controller('manufacturer')
+@Controller('manufacturers')
 export class ManufacturerController {
 	constructor(private readonly manufacturerService: ManufacturerService) {}
 

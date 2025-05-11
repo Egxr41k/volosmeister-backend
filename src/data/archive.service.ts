@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Category, Manufacturer, Product } from '@prisma/client'
 import * as archiver from 'archiver'
 import { createWriteStream } from 'fs'
-import { mkdtemp, rm, writeFile } from 'fs/promises'
+import { mkdtemp, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { basename, extname, join } from 'path'
 import * as unzipper from 'unzipper'
@@ -37,13 +37,13 @@ export class ArchiveService {
 		await unzipper.Open.file(zipPath).then(d => d.extract({ path: tempDir }))
 
 		const outputDir = join(tempDir, basename(zipPath, extname(zipPath)))
-
+		console.log('outputDir:', outputDir)
 		const products = await this.jsonService.readProducts(outputDir)
 		const categories = await this.jsonService.readCategories(outputDir)
 		const manufacturers = await this.jsonService.readManufacturers(outputDir)
 		const images = await this.imageService.readImages(outputDir)
 
-		await rm(tempDir, { force: true })
+		//await rm(tempDir, { force: true })
 
 		return {
 			products,

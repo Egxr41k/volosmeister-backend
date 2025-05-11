@@ -9,12 +9,13 @@ import { IMAGE_FOLDER } from './constants'
 export class ImageService {
 	async readImages(outputDir: string) {
 		const imagesDir = join(outputDir, IMAGE_FOLDER)
+		console.log('imagesDir:', imagesDir)
 
 		const files = await readdir(imagesDir)
 		return await Promise.all(
 			files.map(async file => ({
 				name: file,
-				file: await this.readImageFile(outputDir, file)
+				file: await this.readImageFile(imagesDir, file)
 			}))
 		)
 	}
