@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as Minio from 'minio'
+import { ImageFile } from 'src/data/archive.service'
 
 @Injectable()
 export class MinioService {
@@ -23,6 +24,44 @@ export class MinioService {
 		if (!bucketExists) {
 			await this.minioClient.makeBucket(this.bucketName, 'eu-west-1')
 		}
+	}
+
+	async listFiles(): Promise<ImageFile[]> {
+		const files: ImageFile[] = []
+
+		const stream = this.minioClient.listObjects(this.bucketName, '', true)
+
+		return new Promise((resolve, reject) => {
+			stream.on('data', async obj => {
+				const buffer = await this.minioClient.getObject(
+					this.bucketName,
+					obj.name
+				)
+				const chunks = []
+				for await (const chunk of buffer) {
+					chunks.push(chunk)
+				}
+				const fileBuffer = Buffer.concat(chunks)
+
+				files.push({
+					name: obj.name,
+					file: {
+						fieldname: 'file',
+						originalname: obj.name,
+						encoding: '7bit',
+						mimetype: 'image/jpeg', // можно подумать над auto-detect
+						buffer: fileBuffer,
+						size: fileBuffer.length,
+						destination: '',
+						filename: '',
+						path: '',
+						stream: buffer
+					} as Express.Multer.File
+				})
+			})
+			stream.on('end', () => resolve(files))
+			stream.on('error', err => reject(err))
+		})
 	}
 
 	async uploadFile(file: Express.Multer.File) {

@@ -15,7 +15,6 @@ export class DataService {
 		const { products, categories, manufacturers, images } =
 			await this.archiveService.unzip(archive)
 
-		// 1. Сохраняем изображения в MinIO
 		const imageUrls = await Promise.all(
 			images.map(async image => ({
 				...(await this.minioService.uploadFile(image.file)),
@@ -23,35 +22,39 @@ export class DataService {
 			}))
 		)
 
-		// 2. Сохраняем категории в БД
 		const categoriesData = await this.prismaService.category.createMany({
 			data: categories
 		})
 
-		// 3. Сохраняем производителей в БД
 		const manufacturersData = await this.prismaService.manufacturer.createMany({
 			data: manufacturers
 		})
 
-		// 4. Сохраняем товары в БД
 		const productsData = await this.prismaService.product.createMany({
 			data: products.map(product => ({
 				...product,
 				images: imageUrls
 					.filter(image => product.images.includes(image.name))
-					.map(image => image.imageUrl) // Extract only the imageUrl property
+					.map(image => image.imageUrl)
 			}))
 		})
 
-		return {
-			categories: categoriesData,
-			manufacturers: manufacturersData,
-			products: productsData
-		}
+		return {}
 	}
 
 	async export() {
-		this.archiveService.zip()
-		//...
+		const products = await this.prismaService.product.findMany({})
+		const categories = await this.prismaService.category.findMany({})
+		const manufacturers = await this.prismaService.manufacturer.findMany({})
+		const images = await this.minioService.listFiles() // getAllFiles()
+
+		const zipPath = await this.archiveService.zip({
+			products,
+			categories,
+			manufacturers,
+			images
+		})
+
+		return zipPath
 	}
 }

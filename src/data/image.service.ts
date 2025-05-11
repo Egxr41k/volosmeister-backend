@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { readdir, readFile } from 'fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { Readable } from 'stream'
+import { ImageFile } from './archive.service'
 import { IMAGE_FOLDER } from './constants'
 
 @Injectable()
@@ -34,5 +35,16 @@ export class ImageService {
 			path: '',
 			stream: new Readable()
 		} as Express.Multer.File
+	}
+
+	async writeImages(outputDir: string, images: ImageFile[]) {
+		const imagesDir = join(outputDir, IMAGE_FOLDER)
+		await mkdir(imagesDir, { recursive: true })
+
+		await Promise.all(
+			images.map(image =>
+				writeFile(join(imagesDir, image.name), image.file.buffer)
+			)
+		)
 	}
 }
