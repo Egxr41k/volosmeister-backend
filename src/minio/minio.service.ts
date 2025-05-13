@@ -8,6 +8,10 @@ export class MinioService {
 	private minioClient: Minio.Client
 	private bucketName: string
 
+	getUrl(fileName: string) {
+		return `http://localhost:9000/${this.bucketName}/${fileName}`
+	}
+
 	constructor(private readonly configService: ConfigService) {
 		this.minioClient = new Minio.Client({
 			endPoint: this.configService.get('MINIO_ENDPOINT'),
@@ -71,8 +75,7 @@ export class MinioService {
 			file.buffer,
 			file.size
 		)
-		const imageUrl = `http://localhost:9000/${this.bucketName}/${file.originalname}`
-		return imageUrl
+		return this.getUrl(file.originalname)
 	}
 
 	async getFileUrl(fileName: string) {
@@ -82,5 +85,17 @@ export class MinioService {
 	async deleteFile(fileName: string) {
 		await this.minioClient.removeObject(this.bucketName, fileName)
 		return fileName
+	}
+
+	async checkIfFileExists(fileName: string) {
+		try {
+			await this.minioClient.statObject(this.bucketName, fileName)
+			return this.getUrl(fileName)
+		} catch (error) {
+			if (error.code === 'NoSuchKey') {
+				return false
+			}
+			throw error
+		}
 	}
 }
