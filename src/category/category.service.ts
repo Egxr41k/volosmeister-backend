@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from 'src/prisma.service'
 import { slug } from 'src/utils/slug'
-import { CategoryWithChildren } from './category-with-children'
+import { CategoryTree } from './category-with-children'
 import { CategoryDto } from './category.dto'
 import { returnCategoryObject } from './return-category.object'
 
@@ -11,9 +11,7 @@ export class CategoryService {
 
 	async byId(id: number) {
 		const category = await this.prisma.category.findUnique({
-			where: {
-				id
-			},
+			where: { id },
 			select: returnCategoryObject
 		})
 
@@ -26,9 +24,7 @@ export class CategoryService {
 
 	async bySlug(slug: string) {
 		const category = await this.prisma.category.findUnique({
-			where: {
-				slug
-			},
+			where: { slug },
 			select: returnCategoryObject
 		})
 
@@ -40,22 +36,29 @@ export class CategoryService {
 	}
 
 	async getAll() {
-		const category = await this.prisma.category.findMany({
+		const categories = await this.prisma.category.findMany({
 			select: returnCategoryObject
 		})
 
-		if (!category) {
+		if (!categories) {
 			throw new Error('Category not found')
 		}
 
-		return category
+		return categories
 	}
 
 	async getRoot() {
-		return await this.prisma.category.findMany({
+		const categories = await this.prisma.category.findMany({
 			where: { parentId: null },
+
 			select: returnCategoryObject
 		})
+
+		if (!categories) {
+			throw new Error('Category not found')
+		}
+
+		return categories
 	}
 
 	async getChildren(id: number) {
@@ -69,38 +72,36 @@ export class CategoryService {
 		return categories
 	}
 
-	async getChain(id: number) {
-		const chain: CategoryWithChildren[] = []
-
-		let current = await this.prisma.category.findUnique({
-			where: { id },
-			include: {
-				children: true,
-				parent: true
-			}
+	async getTree(id: number) {
+		const current = await this.prisma.category.findUnique({
+			where: { id }
 		})
 
-		while (current) {
-			// Получаем детей текущей категории
-			const children = await this.prisma.category.findMany({
-				where: { parentId: current.id }
+		let currentTreeHead: CategoryTree = { ...current, children: [] }
+
+		while (currentTreeHead.parentId !== null) {
+			const parent = await this.prisma.category.findUnique({
+				where: { id: currentTreeHead.parentId }
 			})
 
-			// Добавляем текущую категорию в цепочку
-			chain.unshift({ ...current, children })
+			const children = await this.prisma.category.findMany({
+				where: { parentId: parent.id }
+			})
 
-			if (!current.parentId) break
-
-			current = await this.prisma.category.findUnique({
-				where: { id: current.parentId },
-				include: {
-					children: true,
-					parent: true
+			const preparedChildren = children.map(child => {
+				if (child.id === currentTreeHead.id) {
+					return currentTreeHead
+				} else {
+					return {
+						...child,
+						children: []
+					} as CategoryTree
 				}
 			})
-		}
 
-		return chain
+			currentTreeHead = { ...parent, children: preparedChildren }
+		}
+		return currentTreeHead
 	}
 
 	async create(dto: CategoryDto) {

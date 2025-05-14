@@ -33,9 +33,9 @@ export class CategoryController {
 		return this.categoryService.getChildren(+parentId)
 	}
 
-	@Get('chain/:id')
+	@Get('tree/:id')
 	async getChain(@Param('id') id: string) {
-		return this.categoryService.getChain(+id)
+		return this.categoryService.getTree(+id)
 	}
 
 	@Get('by-slug/:slug')
