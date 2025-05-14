@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import { bfsCategoryTree } from 'src/category/bfs-category-tree'
 import { CategoryService } from 'src/category/category.service'
 import { FeatureService } from 'src/feature/feature.service'
 import { PaginationService } from 'src/pagination/pagination.service'
@@ -185,10 +186,15 @@ export class ProductService {
 	}
 
 	async byCategory(categorySlug: string) {
+		const category = await this.categoryService.bySlug(categorySlug)
+		const categoryTree = await this.categoryService.getTreeFromRoot(category.id)
+		const allowedCategories = bfsCategoryTree(categoryTree)
 		const products = await this.prisma.product.findMany({
 			where: {
 				category: {
-					slug: categorySlug
+					id: {
+						in: allowedCategories
+					}
 				}
 			},
 			select: productReturnObjectFullest

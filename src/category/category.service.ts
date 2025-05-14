@@ -72,7 +72,79 @@ export class CategoryService {
 		return categories
 	}
 
-	async getTree(id: number) {
+	async getTreeFromRoot(id: number) {
+		const root = await this.prisma.category.findUnique({
+			where: { id }
+		})
+
+		if (!root) {
+			throw new NotFoundException('Category not found')
+		}
+
+		const queue: CategoryTree[] = [
+			{
+				...root,
+				children: []
+			}
+		]
+
+		const result = queue[0]
+
+		// BFS implementation
+		while (queue.length > 0) {
+			const current = queue.shift()
+
+			// Get all children for current node
+			const children = await this.prisma.category.findMany({
+				where: { parentId: current.id }
+			})
+
+			// Transform children and add them to the queue
+			current.children = children.map(child => ({
+				...child,
+				children: []
+			}))
+
+			// Add children to queue for processing
+			queue.push(...current.children)
+		}
+
+		return result
+	}
+
+	async getTreeFromRootRecursive(id: number) {
+		let root = await this.prisma.category.findUnique({
+			where: { id }
+		})
+
+		return await this.loadTreeRecursive({
+			...root,
+			children: []
+		})
+	}
+
+	async loadTreeRecursive(current: CategoryTree) {
+		const children = await this.prisma.category.findMany({
+			where: { parentId: current.id }
+		})
+
+		const preparedChildren = children.map(
+			child =>
+				({
+					...child,
+					children: []
+				}) as CategoryTree
+		)
+
+		return {
+			...current,
+			children: preparedChildren.map(children =>
+				this.loadTreeRecursive(children)
+			)
+		} as CategoryTree
+	}
+
+	async getTreeFromLeaf(id: number) {
 		const current = await this.prisma.category.findUnique({
 			where: { id }
 		})
