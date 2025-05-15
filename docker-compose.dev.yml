@@ -34,7 +34,7 @@ services:
 
   minio:
     container_name: minio
-    image: quay.io/minio/minio
+    image: minio/minio
     command: server /data --console-address ":9001"
     env_file:
       - .env.development

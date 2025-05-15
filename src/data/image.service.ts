@@ -1,22 +1,17 @@
 import { Injectable } from '@nestjs/common'
 import { mkdir, readdir, readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
-import { Readable } from 'stream'
-import { ImageFile } from './archive.service'
+import { fileFromBuffer } from 'src/utils/file-from-buffer'
 import { IMAGE_FOLDER } from './constants'
 
 @Injectable()
 export class ImageService {
 	async readImages(outputDir: string) {
 		const imagesDir = join(outputDir, IMAGE_FOLDER)
-		console.log('imagesDir:', imagesDir)
 
 		const files = await readdir(imagesDir)
 		return await Promise.all(
-			files.map(async file => ({
-				name: file,
-				file: await this.readImageFile(imagesDir, file)
-			}))
+			files.map(async file => await this.readImageFile(imagesDir, file))
 		)
 	}
 
@@ -24,27 +19,16 @@ export class ImageService {
 		const filePath = join(imagesDir, filename)
 		const fileBuffer = await readFile(filePath)
 
-		return {
-			fieldname: 'file',
-			originalname: filename,
-			encoding: '7bit',
-			mimetype: 'image/jpeg', // this.getMimeType(filename),
-			buffer: fileBuffer,
-			size: fileBuffer.length,
-			destination: '',
-			filename: '',
-			path: '',
-			stream: new Readable()
-		} as Express.Multer.File
+		return fileFromBuffer(filename, fileBuffer)
 	}
 
-	async writeImages(outputDir: string, images: ImageFile[]) {
+	async writeImages(outputDir: string, images: Express.Multer.File[]) {
 		const imagesDir = join(outputDir, IMAGE_FOLDER)
 		await mkdir(imagesDir, { recursive: true })
 
 		await Promise.all(
 			images.map(image =>
-				writeFile(join(imagesDir, image.name), image.file.buffer)
+				writeFile(join(imagesDir, image.originalname), image.buffer)
 			)
 		)
 	}

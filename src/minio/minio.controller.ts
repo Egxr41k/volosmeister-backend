@@ -19,15 +19,14 @@ export class MinioController {
 	@HttpCode(200)
 	@UseInterceptors(FileInterceptor('image'))
 	async uploadImage(@UploadedFile() file: Express.Multer.File) {
-		await this.minioService.createBucketIfNotExists()
-		return await this.minioService.uploadFile(file)
+		await this.minioService.uploadFile(file)
+		return this.minioService.getFileStaticUrl(file.originalname)
 	}
 
 	@Delete('image/:fileName')
 	//@Auth('admin')
 	@HttpCode(200)
 	async deleteImage(@Param('fileName') fileName: string) {
-		await this.minioService.deleteFile(fileName)
-		return fileName
+		return await this.minioService.deleteFile(fileName)
 	}
 }

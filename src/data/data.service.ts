@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Category, Manufacturer, Product } from '@prisma/client'
 import { MinioService } from 'src/minio/minio.service'
 import { PrismaService } from 'src/prisma.service'
-import { ArchiveService, ImageFile } from './archive.service'
+import { ArchiveService } from './archive.service'
 
 @Injectable()
 export class DataService {
@@ -25,7 +25,6 @@ export class DataService {
 				await this.safeCreateManufacturers(manufacturers)
 
 			const productsData = await this.safeCreateProducts(products, imageUrls)
-			console.log('products:', productsData)
 
 			return { categoriesData, manufacturersData, productsData }
 		} catch (error) {
@@ -34,19 +33,25 @@ export class DataService {
 		}
 	}
 
-	private async safeCreateImages(images: ImageFile[]) {
+	private async safeCreateImages(images: Express.Multer.File[]) {
 		return await Promise.all(
 			images.map(async image => {
-				// check is exist file with the same name
-				const existingImage = await this.minioService.checkIfFileExists(
-					image.name
+				const existingImage = await this.minioService.getFileUrl(
+					image.originalname
 				)
 
-				return {
-					url: existingImage
-						? existingImage
-						: await this.minioService.uploadFile(image.file),
-					name: image.name
+				if (existingImage) {
+					return {
+						url: existingImage,
+						name: image.originalname
+					}
+				} else {
+					await this.minioService.uploadFile(image)
+					const url = await this.minioService.getFileUrl(image.originalname)
+					return {
+						url,
+						name: image.originalname
+					}
 				}
 			})
 		)
@@ -104,7 +109,6 @@ export class DataService {
 		images: { url: string; name: string }[]
 	) {
 		try {
-			// First, get a valid user from the database
 			const defaultUser = await this.prismaService.user.findFirst()
 			if (!defaultUser) {
 				throw new Error('No users found in the database')

@@ -1,101 +1,68 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import * as Minio from 'minio'
-import { ImageFile } from 'src/data/archive.service'
+import { Client } from 'minio'
+import { fileFromBuffer } from 'src/utils/file-from-buffer'
+import { InjectMinio } from './minio.decorator'
 
 @Injectable()
 export class MinioService {
-	private minioClient: Minio.Client
 	private bucketName: string
 
-	getUrl(fileName: string) {
-		return `http://localhost:9000/${this.bucketName}/${fileName}`
+	constructor(
+		private readonly configService: ConfigService,
+		@InjectMinio() private readonly minioClient: Client
+	) {
+		this.bucketName = this.configService.getOrThrow('MINIO_BUCKET_NAME')
 	}
 
-	constructor(private readonly configService: ConfigService) {
-		this.minioClient = new Minio.Client({
-			endPoint: this.configService.get('MINIO_ENDPOINT'),
-			port: Number(this.configService.get('MINIO_PORT')),
-			useSSL: this.configService.get('MINIO_USE_SSL') === 'true',
-			accessKey: this.configService.get('MINIO_ACCESS_KEY'),
-			secretKey: this.configService.get('MINIO_SECRET_KEY')
-		})
-		this.bucketName = this.configService.get('MINIO_BUCKET_NAME')
-	}
+	async listFiles() {
+		const files = [] as Express.Multer.File[]
+		const objectsStream = this.minioClient.listObjectsV2(
+			this.bucketName,
+			'',
+			true
+		)
 
-	async createBucketIfNotExists() {
-		const bucketExists = await this.minioClient.bucketExists(this.bucketName)
-		if (!bucketExists) {
-			await this.minioClient.makeBucket(this.bucketName, 'eu-west-1')
+		for await (const obj of objectsStream) {
+			const fileBuffer = await this.getFileBuffer(obj.name)
+			const file = fileFromBuffer(obj.name, fileBuffer)
+
+			files.push(file)
 		}
+
+		return files
 	}
 
-	async listFiles(): Promise<ImageFile[]> {
-		const files: ImageFile[] = []
-
-		const stream = this.minioClient.listObjects(this.bucketName, '', true)
-
-		return new Promise((resolve, reject) => {
-			stream.on('data', async obj => {
-				const buffer = await this.minioClient.getObject(
-					this.bucketName,
-					obj.name
-				)
-				const chunks = []
-				for await (const chunk of buffer) {
-					chunks.push(chunk)
-				}
-				const fileBuffer = Buffer.concat(chunks)
-
-				files.push({
-					name: obj.name,
-					file: {
-						fieldname: 'file',
-						originalname: obj.name,
-						encoding: '7bit',
-						mimetype: 'image/jpeg', // можно подумать над auto-detect
-						buffer: fileBuffer,
-						size: fileBuffer.length,
-						destination: '',
-						filename: '',
-						path: '',
-						stream: buffer
-					} as Express.Multer.File
-				})
-			})
-			stream.on('end', () => resolve(files))
-			stream.on('error', err => reject(err))
-		})
+	async getFileBuffer(fileName: string): Promise<Buffer> {
+		const stream = await this.minioClient.getObject(this.bucketName, fileName)
+		const chunks = []
+		for await (const chunk of stream) chunks.push(chunk)
+		return Buffer.concat(chunks)
 	}
 
 	async uploadFile(file: Express.Multer.File) {
-		await this.minioClient.putObject(
+		return await this.minioClient.putObject(
 			this.bucketName,
 			file.originalname,
 			file.buffer,
 			file.size
 		)
-		return this.getUrl(file.originalname)
 	}
 
 	async getFileUrl(fileName: string) {
 		return await this.minioClient.presignedUrl('GET', this.bucketName, fileName)
 	}
 
-	async deleteFile(fileName: string) {
-		await this.minioClient.removeObject(this.bucketName, fileName)
-		return fileName
+	getFileStaticUrl(fileName: string): string {
+		const endpoint = this.configService.getOrThrow('MINIO_ENDPOINT')
+		const port = this.configService.getOrThrow('MINIO_PORT')
+		const isMinioUseSsl = this.configService.get('MINIO_USE_SSL') === 'true'
+
+		const protocol = isMinioUseSsl ? 'https' : 'http'
+		return `${protocol}://${endpoint}:${port}/${this.bucketName}/${fileName}`
 	}
 
-	async checkIfFileExists(fileName: string) {
-		try {
-			await this.minioClient.statObject(this.bucketName, fileName)
-			return this.getUrl(fileName)
-		} catch (error) {
-			if (error.code === 'NoSuchKey') {
-				return false
-			}
-			throw error
-		}
+	async deleteFile(fileName: string) {
+		return await this.minioClient.removeObject(this.bucketName, fileName)
 	}
 }

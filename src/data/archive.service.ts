@@ -9,16 +9,11 @@ import * as unzipper from 'unzipper'
 import { ImageService } from './image.service'
 import { JsonService } from './json.service'
 
-export interface ImageFile {
-	name: string
-	file: Express.Multer.File
-}
-
 export interface IArchiveData {
 	products: Product[]
 	categories: Category[]
 	manufacturers: Manufacturer[]
-	images: ImageFile[]
+	images: Express.Multer.File[]
 }
 
 @Injectable()
