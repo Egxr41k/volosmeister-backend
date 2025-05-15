@@ -24,9 +24,8 @@ export class JsonService {
 		)
 	}
 
-	async readFileAs<T>(outputDir: string, name: JsonFileName): Promise<T> {
-		const filename = JSON_FILE_NAMES[name]
-		const filePath = join(outputDir, name)
+	async readFileAs<T>(outputDir: string, filename: JsonFileName): Promise<T> {
+		const filePath = join(outputDir, filename)
 		const data = await readFile(filePath)
 		return await this.JsonParseAs<T>(data)
 	}
@@ -68,10 +67,9 @@ export class JsonService {
 
 	async writeFileAs<T>(
 		outputDir: string,
-		name: JsonFileName,
+		filename: JsonFileName,
 		data: T
 	): Promise<void> {
-		const filename = JSON_FILE_NAMES[name]
 		const filePath = join(outputDir, filename)
 		const jsonString = await this.JsonStringifyAs<T>(data)
 		await writeFile(filePath, jsonString)

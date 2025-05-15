@@ -278,6 +278,10 @@ export class ProductService {
 
 		const category = await this.categoryService.createIfNotExist(categoryName)
 
+		//update slug if name changed
+		const newSlug =
+			existingProduct.name === name ? existingProduct.slug : slug(name)
+
 		await this.featureService.updateMany(id, dto.features)
 		await this.propertyService.updateMany(id, dto.properties)
 
@@ -290,7 +294,7 @@ export class ProductService {
 				images,
 				price,
 				name,
-				slug: slug(name),
+				slug: newSlug,
 				category: {
 					connect: {
 						id: category.id

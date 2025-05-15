@@ -189,7 +189,7 @@ export class CategoryService {
 	async createIfNotExist(categoryName: string) {
 		const existingCateory = await this.prisma.category.findUnique({
 			where: {
-				slug: slug(categoryName)
+				name: categoryName
 			}
 		})
 		if (existingCateory) {

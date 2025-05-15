@@ -1,6 +1,5 @@
 import {
 	Controller,
-	Get,
 	Post,
 	Res,
 	UploadedFile,
@@ -21,7 +20,7 @@ export class DataController {
 		return this.dataService.import(file)
 	}
 
-	@Get('export')
+	@Post('export')
 	async exportData(@Res() res: Response) {
 		const zipPath = await this.dataService.export()
 

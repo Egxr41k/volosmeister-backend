@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Category, Manufacturer, Product } from '@prisma/client'
 import * as archiver from 'archiver'
 import { createWriteStream } from 'fs'
-import { mkdtemp, writeFile } from 'fs/promises'
+import { mkdir, mkdtemp, readdir, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { basename, extname, join } from 'path'
 import * as unzipper from 'unzipper'
@@ -55,7 +55,9 @@ export class ArchiveService {
 
 	async zip(archiveData: IArchiveData) {
 		const tempDir = await mkdtemp(join(tmpdir(), 'temp-'))
-		const outputDir = join(tempDir, 'output')
+		const acrhiveName = 'output'
+		const outputDir = join(tempDir, acrhiveName)
+		await mkdir(outputDir)
 		await this.jsonService.writeProducts(outputDir, archiveData.products)
 		await this.jsonService.writeCategories(outputDir, archiveData.categories)
 		await this.jsonService.writeManufacturers(
@@ -63,15 +65,21 @@ export class ArchiveService {
 			archiveData.manufacturers
 		)
 		await this.imageService.writeImages(outputDir, archiveData.images)
-		const zipPath = join(tempDir, 'output.zip')
 
-		const output = createWriteStream(zipPath)
-		const archive = archiver('zip', { zlib: { level: 9 } })
+		console.log(await readdir(outputDir))
+		//console: [ 'categories.json', 'images', 'manufacturers.json', 'products.json' ]
 
-		archive.pipe(output)
-		archive.directory(outputDir, false)
-		await archive.finalize()
+		const zipPath = join(tempDir, `${acrhiveName}.zip`)
+		return new Promise<string>((resolve, reject) => {
+			const output = createWriteStream(zipPath)
+			const archive = archiver('zip', { zlib: { level: 9 } })
 
-		return zipPath
+			output.on('close', () => resolve(zipPath))
+			archive.on('error', reject)
+
+			archive.pipe(output)
+			archive.directory(outputDir, false)
+			archive.finalize()
+		})
 	}
 }
