@@ -1,6 +1,7 @@
 import {
 	Controller,
 	Delete,
+	Get,
 	HttpCode,
 	Param,
 	Post,
@@ -14,13 +15,20 @@ import { MinioService } from './minio.service'
 export class MinioController {
 	constructor(private readonly minioService: MinioService) {}
 
+	@Get('image/:fileName')
+	//@Auth('admin')
+	@HttpCode(200)
+	async getImage(@Param('fileName') fileName: string) {
+		return this.minioService.getFileUrl(fileName)
+	}
+
 	@Post('image')
 	//@Auth('admin')
 	@HttpCode(200)
-	@UseInterceptors(FileInterceptor('image'))
+	@UseInterceptors(FileInterceptor('file'))
 	async uploadImage(@UploadedFile() file: Express.Multer.File) {
 		await this.minioService.uploadFile(file)
-		return this.minioService.getFileStaticUrl(file.originalname)
+		//return this.minioService.getFileStaticUrl(file.originalname)
 	}
 
 	@Delete('image/:fileName')

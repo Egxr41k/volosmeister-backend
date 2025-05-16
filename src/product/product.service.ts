@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { bfsCategoryTree } from 'src/category/bfs-category-tree'
 import { CategoryService } from 'src/category/category.service'
 import { FeatureService } from 'src/feature/feature.service'
+import { ManufacturerService } from 'src/manufacturer/manufacturer.service'
 import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
 import { PropertyService } from 'src/property/property.service'
@@ -22,6 +23,7 @@ export class ProductService {
 		private prisma: PrismaService,
 		private paginationService: PaginationService,
 		private categoryService: CategoryService,
+		private manufacturerSevice: ManufacturerService,
 		private featureService: FeatureService,
 		private propertyService: PropertyService
 	) {}
@@ -239,6 +241,7 @@ export class ProductService {
 			price,
 			name,
 			categoryName,
+			manufacturerName,
 			instructionForUse
 		} = dto
 
@@ -251,22 +254,26 @@ export class ProductService {
 		}
 
 		const category = await this.categoryService.createIfNotExist(categoryName)
+		const manufacturer =
+			await this.manufacturerSevice.createIfNotExist(manufacturerName)
 
 		return this.prisma.product.create({
 			data: {
-				instructionForUse: instructionForUse,
 				name: name,
-				description: description,
+				description: description ?? '',
+				instructionForUse: instructionForUse ?? '',
 				images: images,
 				price: price,
 				slug: slug(name),
-				categoryId: category.id
+				categoryId: category.id,
+				manufacturerId: manufacturer.id
 			} as Prisma.ProductCreateInput
 		})
 	}
 
 	async update(id: number, dto: UpdateProductDto) {
-		const { description, images, price, name, categoryName } = dto
+		const { description, images, price, name, categoryName, manufacturerName } =
+			dto
 
 		const existingProduct = await this.prisma.product.findUnique({
 			where: { name }
@@ -277,6 +284,9 @@ export class ProductService {
 		}
 
 		const category = await this.categoryService.createIfNotExist(categoryName)
+
+		const manufacturer =
+			await this.manufacturerSevice.createIfNotExist(manufacturerName)
 
 		//update slug if name changed
 		const newSlug =
@@ -298,6 +308,11 @@ export class ProductService {
 				category: {
 					connect: {
 						id: category.id
+					}
+				},
+				manufacturer: {
+					connect: {
+						id: manufacturer.id
 					}
 				}
 			}

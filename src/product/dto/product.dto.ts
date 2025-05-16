@@ -22,4 +22,7 @@ export class ProductDto implements Prisma.ProductUpdateInput {
 
 	@IsString()
 	categoryName: string
+
+	@IsString()
+	manufacturerName: string
 }

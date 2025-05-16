@@ -5,6 +5,7 @@ import { ManufacturerService } from './manufacturer.service'
 
 @Module({
 	controllers: [ManufacturerController],
-	providers: [ManufacturerService, PrismaService]
+	providers: [ManufacturerService, PrismaService],
+	exports: [ManufacturerService]
 })
 export class ManufacturerModule {}

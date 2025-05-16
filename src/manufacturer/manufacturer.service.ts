@@ -17,6 +17,19 @@ export class ManufacturerService {
 		})
 	}
 
+	async createIfNotExist(manufacturerName: string) {
+		const existingManufacturer = await this.prisma.manufacturer.findUnique({
+			where: {
+				name: manufacturerName
+			}
+		})
+		if (existingManufacturer) {
+			return existingManufacturer
+		} else {
+			return await this.create({ name: manufacturerName } as ManufacturerDto)
+		}
+	}
+
 	async findAll() {
 		const manufacturers = await this.prisma.manufacturer.findMany({
 			select: returnManufacturerObject

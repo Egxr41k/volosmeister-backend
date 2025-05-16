@@ -1,10 +1,13 @@
 import { Global, Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Client } from 'minio'
+import { MinioController } from './minio.controller'
 import { MINIO_TOKEN } from './minio.decorator'
+import { MinioService } from './minio.service'
 
 @Global()
 @Module({
+	controllers: [MinioController],
 	exports: [MINIO_TOKEN],
 	providers: [
 		{
@@ -27,7 +30,8 @@ import { MINIO_TOKEN } from './minio.decorator'
 				}
 				return client
 			}
-		}
+		},
+		MinioService
 	]
 })
 export class MinioModule {}
