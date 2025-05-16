@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import slug from 'slug'
 import { bfsCategoryTree } from 'src/category/bfs-category-tree'
 import { CategoryService } from 'src/category/category.service'
 import { FeatureService } from 'src/feature/feature.service'
@@ -8,7 +9,6 @@ import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
 import { PropertyService } from 'src/property/property.service'
 import { convertToNumber } from 'src/utils/convert-to-number'
-import { slug } from 'src/utils/slug'
 import { EnumProductSort, GetAllProductDto } from './dto/get-all.product.dto'
 import { ProductDto } from './dto/product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
@@ -267,7 +267,8 @@ export class ProductService {
 				slug: slug(name),
 				categoryId: category.id,
 				manufacturerId: manufacturer.id
-			} as Prisma.ProductCreateInput
+			},
+			select: productReturnObjectFullest
 		})
 	}
 
@@ -276,11 +277,11 @@ export class ProductService {
 			dto
 
 		const existingProduct = await this.prisma.product.findUnique({
-			where: { name }
+			where: { id }
 		})
 
 		if (!existingProduct) {
-			throw new Error(`Product with name ${name} already exists`)
+			throw new Error(`Product with name ${name} not found`)
 		}
 
 		const category = await this.categoryService.createIfNotExist(categoryName)
@@ -315,7 +316,8 @@ export class ProductService {
 						id: manufacturer.id
 					}
 				}
-			}
+			},
+			select: productReturnObjectFullest
 		})
 	}
 

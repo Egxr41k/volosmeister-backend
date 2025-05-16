@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Category, Manufacturer, Product } from '@prisma/client'
+import { Category, Manufacturer, Product, User } from '@prisma/client'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { JSON_FILE_NAMES, JsonFileName } from './constants'
@@ -22,6 +22,10 @@ export class JsonService {
 			outputDir,
 			JSON_FILE_NAMES.MANUFACTURERS
 		)
+	}
+
+	async readUsers(outputDir: string) {
+		return await this.readFileAs<User[]>(outputDir, JSON_FILE_NAMES.USERS)
 	}
 
 	async readFileAs<T>(outputDir: string, filename: JsonFileName): Promise<T> {
@@ -54,13 +58,18 @@ export class JsonService {
 		)
 	}
 
-	async writeManufacturers(
-		outputDir: string,
-		data: Manufacturer[]
-	): Promise<void> {
+	async writeManufacturers(outputDir: string, data: Manufacturer[]) {
 		return await this.writeFileAs<Manufacturer[]>(
 			outputDir,
 			JSON_FILE_NAMES.MANUFACTURERS,
+			data
+		)
+	}
+
+	async writeUsers(outputDir: string, data: User[]) {
+		return await this.writeFileAs<User[]>(
+			outputDir,
+			JSON_FILE_NAMES.USERS,
 			data
 		)
 	}
