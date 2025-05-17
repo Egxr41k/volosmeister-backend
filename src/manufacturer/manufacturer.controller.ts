@@ -26,7 +26,7 @@ export class ManufacturerController {
 
 	@Get()
 	findAll() {
-		return this.manufacturerService.findAll()
+		return this.manufacturerService.getAll()
 	}
 
 	@Get(':id')

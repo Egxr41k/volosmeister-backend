@@ -52,6 +52,40 @@ export class MinioService {
 		return Buffer.concat(chunks)
 	}
 
+	async safeUpload(images: Express.Multer.File[]) {
+		return await Promise.all(
+			images.map(async image => {
+				return {
+					url: await this.uploadIfNotExist(image),
+					name: image.originalname
+				}
+			})
+		)
+	}
+
+	private async uploadIfNotExist(image: Express.Multer.File) {
+		const existingUrl = await this.getFileUrl(image.originalname)
+
+		console.log(image.originalname, '>', existingUrl)
+		if (existingUrl) return existingUrl
+
+		await this.uploadFile(image)
+		return await this.getFileUrl(image.originalname)
+	}
+
+	async forceUploadMany(images: Express.Multer.File[]) {
+		//delete all images, than
+		return await Promise.all(
+			images.map(async image => {
+				await this.uploadFile(image)
+				return {
+					imageUrl: await this.getFileUrl(image.originalname),
+					name: image.originalname
+				}
+			})
+		)
+	}
+
 	async uploadFile(file: Express.Multer.File) {
 		return await this.minioClient.putObject(
 			this.bucketName,

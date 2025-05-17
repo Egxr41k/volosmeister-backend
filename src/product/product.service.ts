@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { Prisma, Product, User } from '@prisma/client'
 import slug from 'slug'
 import { bfsCategoryTree } from 'src/category/bfs-category-tree'
 import { CategoryService } from 'src/category/category.service'
@@ -33,9 +33,15 @@ export class ProductService {
 
 		const { perPage, skip } = this.paginationService.getPagination(dto)
 
+		const defaultIdSort = [
+			{ id: 'asc' }
+		] as Prisma.ProductOrderByWithRelationInput[]
+
+		const orderBy = dto.sort ? this.getSortOption(dto.sort) : defaultIdSort
+
 		const products = await this.prisma.product.findMany({
 			where: filters,
-			orderBy: this.getSortOption(dto.sort),
+			orderBy,
 			skip,
 			take: perPage,
 			select: productReturnObject
@@ -270,6 +276,72 @@ export class ProductService {
 			},
 			select: productReturnObjectFullest
 		})
+	}
+
+	async safeCreateMany(
+		products: Product[],
+		images: { url: string; name: string }[]
+	) {
+		const defaultUser = await this.prisma.user.findFirst()
+		if (!defaultUser) {
+			throw new Error('No users found in the database')
+		}
+
+		return Promise.all(
+			products.map(
+				async product => await this.createProduct(product, images, defaultUser)
+			)
+		)
+	}
+
+	async createProduct(
+		product: Product,
+		images: { url: string; name: string }[],
+		defaultUser: User
+	) {
+		const existingProduct = await this.prisma.product.findUnique({
+			where: { name: product.name }
+		})
+
+		if (existingProduct) {
+			return existingProduct
+		}
+
+		const productUserId = product.userId ?? defaultUser.id
+
+		const productImages = images
+			.filter(image => product.images.includes(image.name))
+			.map(image => image.url)
+
+		console.log(product.images)
+		console.log(productImages)
+
+		return this.prisma.product.create({
+			data: {
+				...product,
+				userId: productUserId,
+				images: productImages
+			}
+		})
+	}
+
+	async forceCreateMany(
+		products: Product[],
+		imageUrls: { imageUrl: string; name: string }[]
+	) {
+		await this.prisma.product.deleteMany()
+		const productsData = await this.prisma.product.createMany({
+			data: products.map(product => {
+				const productImages = imageUrls
+					.filter(image => product.images.includes(image.name))
+					.map(image => image.imageUrl)
+				return {
+					...product,
+					images: productImages
+				}
+			})
+		})
+		return productsData
 	}
 
 	async update(id: number, dto: UpdateProductDto) {

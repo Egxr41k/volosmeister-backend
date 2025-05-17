@@ -8,7 +8,7 @@ import { MinioService } from './minio.service'
 @Global()
 @Module({
 	controllers: [MinioController],
-	exports: [MINIO_TOKEN],
+	exports: [MINIO_TOKEN, MinioService],
 	providers: [
 		{
 			inject: [ConfigService],

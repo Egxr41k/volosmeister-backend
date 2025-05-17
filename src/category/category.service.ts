@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { Category } from '@prisma/client'
 import slug from 'slug'
 import { PrismaService } from 'src/prisma.service'
 import { CategoryTree } from './category-with-children'
@@ -37,7 +38,8 @@ export class CategoryService {
 
 	async getAll() {
 		const categories = await this.prisma.category.findMany({
-			select: returnCategoryObject
+			select: returnCategoryObject,
+			orderBy: { id: 'asc' }
 		})
 
 		if (!categories) {
@@ -197,6 +199,56 @@ export class CategoryService {
 		} else {
 			return await this.create({ name: categoryName } as CategoryDto)
 		}
+	}
+
+	async safeCreateMany(categories: Category[]) {
+		const created = new Map<string, Category>()
+
+		while (created.size < categories.length) {
+			let progress = false
+
+			for (const category of categories) {
+				if (created.has(category.name)) continue
+
+				const parentIsReady =
+					!category.parentId ||
+					[...created.values()].some(cat => cat.id === category.parentId)
+
+				if (parentIsReady) {
+					const existing = await this.prisma.category.findUnique({
+						where: { name: category.name }
+					})
+
+					let createdCategory: Category
+					if (existing) {
+						createdCategory = existing
+					} else {
+						createdCategory = await this.prisma.category.create({
+							data: category
+						})
+					}
+
+					created.set(category.name, createdCategory)
+					progress = true
+				}
+			}
+
+			if (!progress) {
+				throw new Error(
+					'Circular or unresolved parent-child dependency in category list.'
+				)
+			}
+		}
+
+		return [...created.values()]
+	}
+
+	async forceCreateMany(categories: Category[]) {
+		await this.prisma.category.deleteMany()
+		const categoriesData = await this.prisma.category.createMany({
+			data: categories
+		})
+		return categoriesData
 	}
 
 	async update(id: number, dto: CategoryDto) {

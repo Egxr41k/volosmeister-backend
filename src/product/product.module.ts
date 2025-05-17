@@ -20,6 +20,7 @@ import { ProductService } from './product.service'
 		FeatureModule,
 		PropertyModule
 	],
-	providers: [ProductService, PrismaService]
+	providers: [ProductService, PrismaService],
+	exports: [ProductService]
 })
 export class ProductModule {}

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { Manufacturer } from '@prisma/client'
 import slug from 'slug'
 import { PrismaService } from 'src/prisma.service'
 import { ManufacturerDto } from './manufacturer.dto'
@@ -30,9 +31,35 @@ export class ManufacturerService {
 		}
 	}
 
-	async findAll() {
+	async safeCreateMany(manufacturers: Manufacturer[]) {
+		return await Promise.all(
+			manufacturers.map(async manufacturer => {
+				const existingManufacturer = await this.prisma.manufacturer.findUnique({
+					where: { name: manufacturer.name }
+				})
+				if (existingManufacturer) {
+					return existingManufacturer
+				} else {
+					return await this.prisma.manufacturer.create({
+						data: manufacturer
+					})
+				}
+			})
+		)
+	}
+
+	async forceCreateMany(manufacturers: Manufacturer[]) {
+		await this.prisma.manufacturer.deleteMany()
+		const manufacturersData = await this.prisma.manufacturer.createMany({
+			data: manufacturers
+		})
+		return manufacturersData
+	}
+
+	async getAll() {
 		const manufacturers = await this.prisma.manufacturer.findMany({
-			select: returnManufacturerObject
+			select: returnManufacturerObject,
+			orderBy: { id: 'asc' }
 		})
 
 		if (!manufacturers) {

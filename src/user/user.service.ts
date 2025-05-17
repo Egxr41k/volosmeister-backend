@@ -3,7 +3,7 @@ import {
 	Injectable,
 	NotFoundException
 } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { Prisma, User } from '@prisma/client'
 import { hash } from 'argon2'
 import { PrismaService } from 'src/prisma.service'
 import { returnUserObject } from './return-user.object'
@@ -12,6 +12,15 @@ import { UserDto } from './user.dto'
 @Injectable()
 export class UserService {
 	constructor(private prisma: PrismaService) {}
+
+	async getAll() {
+		return this.prisma.user.findMany({
+			orderBy: {
+				id: 'asc'
+			},
+			select: returnUserObject
+		})
+	}
 
 	async byId(id: number, selectObject: Prisma.UserSelect = {}) {
 		const user = await this.prisma.user.findUnique({
@@ -96,5 +105,30 @@ export class UserService {
 		})
 
 		return { message: 'Success' }
+	}
+
+	async safeCreateMany(users: User[]) {
+		return await Promise.all(
+			users.map(async user => {
+				const existingUser = await this.prisma.user.findUnique({
+					where: { email: user.email }
+				})
+				if (existingUser) {
+					return existingUser
+				} else {
+					return await this.prisma.user.create({
+						data: user
+					})
+				}
+			})
+		)
+	}
+
+	async forceCreateMany(users: User[]) {
+		await this.prisma.user.deleteMany()
+		const usersData = await this.prisma.user.createMany({
+			data: users
+		})
+		return usersData
 	}
 }
