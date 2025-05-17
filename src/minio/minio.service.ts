@@ -30,7 +30,19 @@ export class MinioService {
 			files.push(file)
 		}
 
-		return files
+		return this.sortFilesByTheirNames(files)
+	}
+
+	sortFilesByTheirNames(files: Express.Multer.File[]) {
+		return files.sort((a, b) => {
+			const [, aFirst, aSecond] = a.originalname.split('-').map(Number)
+			const [, bFirst, bSecond] = b.originalname.split('-').map(Number)
+
+			if (aFirst !== bFirst) {
+				return aFirst - bFirst
+			}
+			return aSecond - bSecond
+		})
 	}
 
 	async getFileBuffer(fileName: string): Promise<Buffer> {
@@ -51,6 +63,13 @@ export class MinioService {
 
 	async getFileUrl(fileName: string) {
 		return await this.minioClient.presignedUrl('GET', this.bucketName, fileName)
+	}
+
+	getNameByUrl(url: string) {
+		return url
+			.split('?')[0]
+			.split('/')
+			.find(str => str.includes('image'))
 	}
 
 	getFileStaticUrl(fileName: string): string {

@@ -28,42 +28,64 @@ export class DataService {
 	private async safeCreateImages(images: Express.Multer.File[]) {
 		return await Promise.all(
 			images.map(async image => {
-				const existingImage = await this.minioService.getFileUrl(
-					image.originalname
-				)
-
-				if (existingImage) {
-					return {
-						url: existingImage,
-						name: image.originalname
-					}
-				} else {
-					await this.minioService.uploadFile(image)
-					const url = await this.minioService.getFileUrl(image.originalname)
-					return {
-						url,
-						name: image.originalname
-					}
+				return {
+					url: await this.uploadIfNotExist(image),
+					name: image.originalname
 				}
 			})
 		)
 	}
 
+	private async uploadIfNotExist(image: Express.Multer.File) {
+		const existingUrl = await this.minioService.getFileUrl(image.originalname)
+
+		console.log(image.originalname, '>', existingUrl)
+		if (existingUrl) return existingUrl
+
+		await this.minioService.uploadFile(image)
+		return await this.minioService.getFileUrl(image.originalname)
+	}
+
 	private async safeCreateCategories(categories: Category[]) {
-		return await Promise.all(
-			categories.map(async category => {
-				const existingCategory = await this.prismaService.category.findUnique({
-					where: { name: category.name }
-				})
-				if (existingCategory) {
-					return existingCategory
-				} else {
-					return await this.prismaService.category.create({
-						data: category
+		const created = new Map<string, Category>()
+
+		while (created.size < categories.length) {
+			let progress = false
+
+			for (const category of categories) {
+				if (created.has(category.name)) continue
+
+				const parentIsReady =
+					!category.parentId ||
+					[...created.values()].some(cat => cat.id === category.parentId)
+
+				if (parentIsReady) {
+					const existing = await this.prismaService.category.findUnique({
+						where: { name: category.name }
 					})
+
+					let createdCategory: Category
+					if (existing) {
+						createdCategory = existing
+					} else {
+						createdCategory = await this.prismaService.category.create({
+							data: category
+						})
+					}
+
+					created.set(category.name, createdCategory)
+					progress = true
 				}
-			})
-		)
+			}
+
+			if (!progress) {
+				throw new Error(
+					'Circular or unresolved parent-child dependency in category list.'
+				)
+			}
+		}
+
+		return [...created.values()]
 	}
 
 	private async safeCreateUsers(users: User[]) {
@@ -110,37 +132,67 @@ export class DataService {
 			throw new Error('No users found in the database')
 		}
 
-		return await Promise.all(
-			products.map(async product => {
-				const existingProduct = await this.prismaService.product.findUnique({
-					where: { name: product.name }
-				})
-				if (existingProduct) {
-					return existingProduct
-				} else {
-					return await this.prismaService.product.create({
-						data: {
-							...product,
-							userId: defaultUser.id,
-							images: images
-								.filter(image => product.images.includes(image.name))
-								.map(image => image.url)
-						}
-					})
-				}
-			})
+		return Promise.all(
+			products.map(
+				async product => await this.createProduct(product, images, defaultUser)
+			)
 		)
 	}
 
+	async createProduct(
+		product: Product,
+		images: { url: string; name: string }[],
+		defaultUser: User
+	) {
+		const existingProduct = await this.prismaService.product.findUnique({
+			where: { name: product.name }
+		})
+
+		if (existingProduct) {
+			return existingProduct
+		}
+
+		const productUserId = product.userId ?? defaultUser.id
+
+		const productImages = images
+			.filter(image => product.images.includes(image.name))
+			.map(image => image.url)
+
+		console.log(product.images)
+		console.log(productImages)
+
+		return this.prismaService.product.create({
+			data: {
+				...product,
+				userId: productUserId,
+				images: productImages
+			}
+		})
+	}
+
 	async export() {
-		const products = await this.prismaService.product.findMany({})
-		const categories = await this.prismaService.category.findMany({})
-		const manufacturers = await this.prismaService.manufacturer.findMany({})
-		const users = await this.prismaService.user.findMany({})
-		const images = await this.minioService.listFiles() // getAllFiles()
+		const products = await this.prismaService.product.findMany({
+			orderBy: { id: 'asc' }
+		})
+		const categories = await this.prismaService.category.findMany({
+			orderBy: { id: 'asc' }
+		})
+		const manufacturers = await this.prismaService.manufacturer.findMany({
+			orderBy: { id: 'asc' }
+		})
+		const users = await this.prismaService.user.findMany({
+			orderBy: { id: 'asc' }
+		})
+		const images = await this.minioService.listFiles()
+
+		//write filenames instead uls
+		const preparedProducts = products.map(product => ({
+			...product,
+			images: product.images.map(image => this.minioService.getNameByUrl(image))
+		}))
 
 		const zipPath = await this.archiveService.zip({
-			products,
+			products: preparedProducts,
 			categories,
 			manufacturers,
 			users,

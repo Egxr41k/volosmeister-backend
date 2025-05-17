@@ -16,7 +16,7 @@ export class DataController {
 
 	@Post('import')
 	@UseInterceptors(FileInterceptor('file'))
-	async create(@UploadedFile() file: Express.Multer.File) {
+	async import(@UploadedFile() file: Express.Multer.File) {
 		return await this.dataService.import(file)
 	}
 

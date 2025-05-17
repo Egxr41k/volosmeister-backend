@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { Category, Manufacturer, Product, User } from '@prisma/client'
-import * as archiver from 'archiver'
+import archiver from 'archiver'
 import { createWriteStream } from 'fs'
-import { mkdir, mkdtemp, readdir, writeFile } from 'fs/promises'
+import { mkdir, mkdtemp, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
-import { basename, extname, join } from 'path'
-import * as unzipper from 'unzipper'
+import { join } from 'path'
+import unzipper from 'unzipper'
 import { ImageService } from './image.service'
 import { JsonService } from './json.service'
 
@@ -32,7 +32,7 @@ export class ArchiveService {
 
 		await unzipper.Open.file(zipPath).then(d => d.extract({ path: tempDir }))
 
-		const outputDir = join(tempDir, basename(zipPath, extname(zipPath)))
+		const outputDir = tempDir
 
 		const products = await this.jsonService.readProducts(outputDir)
 		const categories = await this.jsonService.readCategories(outputDir)
@@ -54,7 +54,7 @@ export class ArchiveService {
 	async zip(archiveData: IArchiveData) {
 		const tempDir = await mkdtemp(join(tmpdir(), 'temp-'))
 		const acrhiveName = 'output'
-		const outputDir = join(tempDir, acrhiveName)
+		const outputDir = tempDir
 		await mkdir(outputDir)
 		await this.jsonService.writeProducts(outputDir, archiveData.products)
 		await this.jsonService.writeCategories(outputDir, archiveData.categories)
@@ -64,9 +64,6 @@ export class ArchiveService {
 		)
 		await this.jsonService.writeUsers(outputDir, archiveData.users)
 		await this.imageService.writeImages(outputDir, archiveData.images)
-
-		console.log(await readdir(outputDir))
-		//console: [ 'categories.json', 'images', 'manufacturers.json', 'products.json' ]
 
 		const zipPath = join(tempDir, `${acrhiveName}.zip`)
 		return new Promise<string>((resolve, reject) => {
