@@ -12,7 +12,7 @@ export class DataService {
 		private readonly prismaService: PrismaService
 	) {}
 
-	async import(archive: Express.Multer.File) {
+	async safeImport(archive: Express.Multer.File) {
 		const { products, categories, manufacturers, users, images } =
 			await this.archiveService.unzip(archive)
 
@@ -168,6 +168,52 @@ export class DataService {
 				images: productImages
 			}
 		})
+	}
+
+	async import(archive: Express.Multer.File) {
+		const { products, categories, manufacturers, images } =
+			await this.archiveService.unzip(archive)
+
+		const imageUrls = await Promise.all(
+			images.map(async image => {
+				await this.minioService.uploadFile(image)
+				return {
+					imageUrl: await this.minioService.getFileUrl(image.originalname),
+					name: image.originalname
+				}
+			})
+		)
+
+		await this.prismaService.category.deleteMany()
+		const categoriesData = await this.prismaService.category.createMany({
+			data: categories
+		})
+
+		await this.prismaService.manufacturer.deleteMany()
+		const manufacturersData = await this.prismaService.manufacturer.createMany({
+			data: manufacturers
+		})
+
+		await this.prismaService.user.deleteMany()
+		const usersData = await this.prismaService.manufacturer.createMany({
+			data: manufacturers
+		})
+
+		await this.prismaService.product.deleteMany()
+
+		const productsData = await this.prismaService.product.createMany({
+			data: products.map(product => {
+				const productImages = imageUrls
+					.filter(image => product.images.includes(image.name))
+					.map(image => image.imageUrl)
+				return {
+					...product,
+					images: productImages
+				}
+			})
+		})
+
+		return { categoriesData, manufacturersData, usersData, productsData }
 	}
 
 	async export() {
