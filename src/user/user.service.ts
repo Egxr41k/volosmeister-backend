@@ -129,6 +129,7 @@ export class UserService {
 		const usersData = await this.prisma.user.createMany({
 			data: users
 		})
+		this.prisma.resetIdSequenceFor('User')
 		return usersData
 	}
 }

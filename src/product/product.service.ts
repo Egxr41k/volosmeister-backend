@@ -341,6 +341,7 @@ export class ProductService {
 				}
 			})
 		})
+		this.prisma.resetIdSequenceFor('Product')
 		return productsData
 	}
 

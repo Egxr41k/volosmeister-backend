@@ -248,6 +248,7 @@ export class CategoryService {
 		const categoriesData = await this.prisma.category.createMany({
 			data: categories
 		})
+		this.prisma.resetIdSequenceFor('Category')
 		return categoriesData
 	}
 

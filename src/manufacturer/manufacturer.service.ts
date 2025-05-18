@@ -53,6 +53,7 @@ export class ManufacturerService {
 		const manufacturersData = await this.prisma.manufacturer.createMany({
 			data: manufacturers
 		})
+		this.prisma.resetIdSequenceFor('Manufacturer')
 		return manufacturersData
 	}
 
