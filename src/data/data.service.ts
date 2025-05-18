@@ -69,14 +69,12 @@ export class DataService {
 			images: product.images.map(image => this.minioService.getNameByUrl(image))
 		}))
 
-		const zipPath = await this.archiveService.zip({
+		return await this.archiveService.zip({
 			products: preparedProducts,
 			categories,
 			manufacturers,
 			users,
 			images
 		})
-
-		return zipPath
 	}
 }

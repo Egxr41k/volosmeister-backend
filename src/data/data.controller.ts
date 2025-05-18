@@ -24,7 +24,7 @@ export class DataController {
 	async exportData(@Res() res: Response) {
 		const zipPath = await this.dataService.export()
 
-		res.download(zipPath, 'export.zip', async () => {
+		res.download(zipPath, async () => {
 			// Можно добавить удаление временного файла после отправки
 			await rm(zipPath)
 		})

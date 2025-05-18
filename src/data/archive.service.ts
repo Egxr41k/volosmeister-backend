@@ -54,7 +54,7 @@ export class ArchiveService {
 	async zip(archiveData: IArchiveData) {
 		const tempDir = await mkdtemp(join(tmpdir(), 'temp-'))
 		const acrhiveName = 'output'
-		const outputDir = tempDir
+		const outputDir = join(tempDir, acrhiveName)
 		await mkdir(outputDir)
 		await this.jsonService.writeProducts(outputDir, archiveData.products)
 		await this.jsonService.writeCategories(outputDir, archiveData.categories)

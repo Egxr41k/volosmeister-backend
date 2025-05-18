@@ -130,19 +130,18 @@ export class CategoryService {
 			where: { parentId: current.id }
 		})
 
-		const preparedChildren = children.map(
-			child =>
-				({
+		const сhildrenWithChildren = await Promise.all(
+			children.map(child =>
+				this.loadTreeRecursive({
 					...child,
 					children: []
-				}) as CategoryTree
+				})
+			)
 		)
 
 		return {
 			...current,
-			children: preparedChildren.map(children =>
-				this.loadTreeRecursive(children)
-			)
+			children: сhildrenWithChildren
 		} as CategoryTree
 	}
 

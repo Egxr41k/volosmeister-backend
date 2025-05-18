@@ -205,6 +205,9 @@ export class ProductService {
 					}
 				}
 			},
+			orderBy: {
+				createAt: 'desc'
+			},
 			select: productReturnObjectFullest
 		})
 
