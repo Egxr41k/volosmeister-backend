@@ -44,32 +44,30 @@ services:
     networks:
       - backend
 
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - '5050:80'
-    depends_on:
-      - postgres
-    networks:
-      - backend
-
   minio:
     container_name: minio
-    image: quay.io/minio/minio
-    command: server /data --console-address ":9001"
+    image: minio/minio
+    command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '9000:${MINIO_CONSOLE_PORT}'
+      - '9001:${MINIO_PORT}'
     volumes:
       - minio_data:/data
+
+  minio-client:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      sh -c "
+        sleep 5 &&
+        mc alias set local http://minio:${MINIO_PORT} ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY} &&
+        mc mb -p local/${MINIO_BUCKET_NAME} || true &&
+        mc anonymous set public local/${MINIO_BUCKET_NAME}
+      "
 
 volumes:
   postgres_data:
