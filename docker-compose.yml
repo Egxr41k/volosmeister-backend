@@ -5,7 +5,7 @@ services:
       context: ../volosmeister-frontend
       dockerfile: Dockerfile
     ports:
-      - '3001:3000'
+      - '3000:3000'
     depends_on:
       - backend
     networks:
@@ -22,12 +22,17 @@ services:
     environment:
       - NODE_ENV=production
     ports:
-      - '3000:${APPLICATION_PORT}'
+      - '4200:${APPLICATION_PORT}'
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules # Чтобы не затиралось локальное
     networks:
       - backend
+    entrypoint: >
+      sh -c "
+        npx prisma db push
+        npm run start:prod
+      "
 
   postgres:
     container_name: postgres
@@ -56,11 +61,15 @@ services:
       - '9001:${MINIO_CONSOLE_PORT}'
     volumes:
       - minio_data:/data
+    networks:
+      - backend
 
   minio-client:
     image: minio/mc
     depends_on:
       - minio
+    networks:
+      - backend
     entrypoint: >
       sh -c "
         sleep 5 &&
