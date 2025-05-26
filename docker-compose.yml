@@ -23,16 +23,8 @@ services:
       - NODE_ENV=production
     ports:
       - '4200:${APPLICATION_PORT}'
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules # Чтобы не затиралось локальное
     networks:
       - backend
-    entrypoint: >
-      sh -c "
-        npx prisma db push
-        npm run start:prod
-      "
 
   postgres:
     container_name: postgres
