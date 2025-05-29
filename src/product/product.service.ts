@@ -28,15 +28,23 @@ export class ProductService {
 		private propertyService: PropertyService
 	) {}
 
-	async getAll(dto: GetAllProductDto = {}) {
+	async getAll(dto?: GetAllProductDto) {
+		if (!dto) {
+			return {
+				products: await this.prisma.product.findMany({
+					orderBy: {
+						id: 'asc'
+					}
+				}),
+				length: await this.prisma.product.count()
+			}
+		}
+
 		const filters = this.createFilter(dto)
-
 		const { perPage, skip } = this.paginationService.getPagination(dto)
-
 		const defaultIdSort = [
 			{ id: 'asc' }
 		] as Prisma.ProductOrderByWithRelationInput[]
-
 		const orderBy = dto.sort ? this.getSortOption(dto.sort) : defaultIdSort
 
 		const products = await this.prisma.product.findMany({
@@ -338,10 +346,12 @@ export class ProductService {
 				const productImages = imageUrls
 					.filter(image => product.images.includes(image.name))
 					.map(image => image.imageUrl)
-				return {
+				const data = {
 					...product,
 					images: productImages
 				}
+				console.log(data)
+				return data
 			})
 		})
 		this.prisma.resetIdSequenceFor('Product')

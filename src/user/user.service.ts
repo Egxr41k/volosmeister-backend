@@ -18,7 +18,7 @@ export class UserService {
 			orderBy: {
 				id: 'asc'
 			},
-			select: returnUserObject
+			where: { isAdmin: false }
 		})
 	}
 
@@ -125,11 +125,19 @@ export class UserService {
 	}
 
 	async forceCreateMany(users: User[]) {
+		const admin = await this.prisma.user.findUnique({
+			where: {
+				email: 'admin@example.com'
+			}
+		})
 		await this.prisma.user.deleteMany()
 		const usersData = await this.prisma.user.createMany({
 			data: users
 		})
+		const adminData = await this.prisma.user.create({
+			data: admin
+		})
 		this.prisma.resetIdSequenceFor('User')
-		return usersData
+		return [usersData, adminData]
 	}
 }
