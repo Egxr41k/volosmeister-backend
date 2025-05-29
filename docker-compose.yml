@@ -17,8 +17,6 @@ services:
     build:
       context: ../volosmeister-frontend
       dockerfile: Dockerfile
-    ports:
-      - '3000:3000'
     depends_on:
       - backend
     networks:
@@ -34,8 +32,6 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-    ports:
-      - '4200:${APPLICATION_PORT}'
     networks:
       - backend
 
