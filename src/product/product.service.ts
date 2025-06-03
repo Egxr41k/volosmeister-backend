@@ -350,7 +350,6 @@ export class ProductService {
 					...product,
 					images: productImages
 				}
-				console.log(data)
 				return data
 			})
 		})

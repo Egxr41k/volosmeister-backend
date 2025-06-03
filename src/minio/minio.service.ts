@@ -66,11 +66,11 @@ export class MinioService {
 	private async uploadIfNotExist(image: Express.Multer.File) {
 		const existingUrl = await this.getFileUrl(image.originalname)
 
-		console.log(image.originalname, '>', existingUrl)
+		//console.log(image.originalname, '>', existingUrl)
 		if (existingUrl) return existingUrl
 
 		await this.uploadFile(image)
-		return await this.getFileUrl(image.originalname)
+		return await this.getFileStaticUrl(image.originalname)
 	}
 
 	async forceUploadMany(images: Express.Multer.File[]) {
@@ -79,7 +79,7 @@ export class MinioService {
 			images.map(async image => {
 				await this.uploadFile(image)
 				return {
-					imageUrl: await this.getFileUrl(image.originalname),
+					imageUrl: await this.getFileStaticUrl(image.originalname),
 					name: image.originalname
 				}
 			})
@@ -107,12 +107,13 @@ export class MinioService {
 	}
 
 	getFileStaticUrl(fileName: string): string {
-		const endpoint = this.configService.getOrThrow('MINIO_ENDPOINT')
-		const port = this.configService.getOrThrow('MINIO_PORT')
-		const isMinioUseSsl = this.configService.get('MINIO_USE_SSL') === 'true'
+		// const endpoint = this.configService.getOrThrow('MINIO_ENDPOINT')
+		// const port = this.configService.getOrThrow('MINIO_PORT')
+		// const isMinioUseSsl = this.configService.get('MINIO_USE_SSL') === 'true'
 
-		const protocol = isMinioUseSsl ? 'https' : 'http'
-		return `${protocol}://${endpoint}:${port}/${this.bucketName}/${fileName}`
+		// const protocol = isMinioUseSsl ? 'https' : 'http'
+		// return `${protocol}://${endpoint}:${port}/${this.bucketName}/${fileName}`
+		return `/minio/${this.bucketName}/${fileName}`
 	}
 
 	async deleteFile(fileName: string) {
