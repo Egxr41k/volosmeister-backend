@@ -43,10 +43,22 @@ export class CategoryService {
 		})
 
 		if (!categories) {
-			throw new Error('Category not found')
+			throw new Error('Categories not found')
 		}
 
 		return categories
+	}
+
+	async getAllAsTree() {
+		const rootCategories = await this.getRoot()
+		return await Promise.all(
+			rootCategories.map(async category => {
+				return (await this.loadTreeRecursive({
+					...category,
+					children: []
+				})) as CategoryTree
+			})
+		)
 	}
 
 	async getRoot() {
@@ -57,7 +69,7 @@ export class CategoryService {
 		})
 
 		if (!categories) {
-			throw new Error('Category not found')
+			throw new Error('Categories not found')
 		}
 
 		return categories
@@ -71,50 +83,14 @@ export class CategoryService {
 			select: returnCategoryObject
 		})
 
+		if (!categories) {
+			throw new Error('Categories not found')
+		}
+
 		return categories
 	}
 
 	async getTreeFromRoot(id: number) {
-		const root = await this.prisma.category.findUnique({
-			where: { id }
-		})
-
-		if (!root) {
-			throw new NotFoundException('Category not found')
-		}
-
-		const queue: CategoryTree[] = [
-			{
-				...root,
-				children: []
-			}
-		]
-
-		const result = queue[0]
-
-		// BFS implementation
-		while (queue.length > 0) {
-			const current = queue.shift()
-
-			// Get all children for current node
-			const children = await this.prisma.category.findMany({
-				where: { parentId: current.id }
-			})
-
-			// Transform children and add them to the queue
-			current.children = children.map(child => ({
-				...child,
-				children: []
-			}))
-
-			// Add children to queue for processing
-			queue.push(...current.children)
-		}
-
-		return result
-	}
-
-	async getTreeFromRootRecursive(id: number) {
 		let root = await this.prisma.category.findUnique({
 			where: { id }
 		})
@@ -125,7 +101,7 @@ export class CategoryService {
 		})
 	}
 
-	async loadTreeRecursive(current: CategoryTree) {
+	async loadTreeRecursive(current: CategoryTree): Promise<CategoryTree> {
 		const children = await this.prisma.category.findMany({
 			where: { parentId: current.id }
 		})

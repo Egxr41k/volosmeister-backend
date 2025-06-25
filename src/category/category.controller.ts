@@ -23,6 +23,11 @@ export class CategoryController {
 		return this.categoryService.getAll()
 	}
 
+	@Get('as-tree')
+	async getAllAsTree() {
+		return this.categoryService.getAllAsTree()
+	}
+
 	@Get('root')
 	async getRoot() {
 		return this.categoryService.getRoot()
