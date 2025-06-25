@@ -2,7 +2,6 @@ services:
   postgres:
     container_name: postgres
     image: postgres:latest
-    restart: always
     env_file:
       - .env.development
     environment:
@@ -14,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - backend
+      - dev-net
 
   minio:
     container_name: minio
@@ -31,7 +30,7 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - backend
+      - dev-net
 
   minio-client:
     image: minio/mc
@@ -45,11 +44,11 @@ services:
         mc anonymous set public local/${MINIO_BUCKET_NAME}
       "
     networks:
-      - backend
+      - dev-net
 
 volumes:
   postgres_data:
   minio_data:
 
 networks:
-  backend:
+  dev-net:

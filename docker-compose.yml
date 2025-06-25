@@ -10,7 +10,7 @@ services:
       - frontend
       - backend
     networks:
-      - backend
+      - prod-net
 
   frontend:
     container_name: frontend
@@ -20,7 +20,7 @@ services:
     depends_on:
       - backend
     networks:
-      - backend
+      - prod-net
 
   backend:
     container_name: backend
@@ -33,12 +33,11 @@ services:
     environment:
       - NODE_ENV=production
     networks:
-      - backend
+      - prod-net
 
   postgres:
     container_name: postgres
     image: postgres:latest
-    restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -46,7 +45,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - backend
+      - prod-net
 
   minio:
     container_name: minio
@@ -58,14 +57,14 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - backend
+      - prod-net
 
   minio-client:
     image: minio/mc
     depends_on:
       - minio
     networks:
-      - backend
+      - prod-net
     entrypoint: >
       sh -c "
         sleep 5 &&
@@ -79,4 +78,4 @@ volumes:
   minio_data:
 
 networks:
-  backend:
+  prod-net:
