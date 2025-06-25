@@ -4,18 +4,17 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
 import { CategoryModule } from './category/category.module'
+import { DataModule } from './data/data.module'
 import { FeatureModule } from './feature/feature.module'
+import { ManufacturerModule } from './manufacturer/manufacturer.module'
+import { MinioModule } from './minio/minio.module'
 import { OrderModule } from './order/order.module'
-import { PaginationModule } from './pagination/pagination.module'
 import { PrismaService } from './prisma.service'
 import { ProductModule } from './product/product.module'
 import { PropertyModule } from './property/property.module'
 import { ReviewModule } from './review/review.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UserModule } from './user/user.module'
-import { MinioModule } from './minio/minio.module'
-import { ManufacturerModule } from './manufacturer/manufacturer.module';
-import { DataModule } from './data/data.module';
 
 @Module({
 	imports: [
@@ -30,7 +29,6 @@ import { DataModule } from './data/data.module';
 		CategoryModule,
 		OrderModule,
 		StatisticsModule,
-		PaginationModule,
 		FeatureModule,
 		PropertyModule,
 		MinioModule,

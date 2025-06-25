@@ -5,7 +5,6 @@ import { bfsCategoryTree } from 'src/category/bfs-category-tree'
 import { CategoryService } from 'src/category/category.service'
 import { FeatureService } from 'src/feature/feature.service'
 import { ManufacturerService } from 'src/manufacturer/manufacturer.service'
-import { PaginationService } from 'src/pagination/pagination.service'
 import { PrismaService } from 'src/prisma.service'
 import { PropertyService } from 'src/property/property.service'
 import { convertToNumber } from 'src/utils/convert-to-number'
@@ -21,7 +20,6 @@ import {
 export class ProductService {
 	constructor(
 		private prisma: PrismaService,
-		private paginationService: PaginationService,
 		private categoryService: CategoryService,
 		private manufacturerSevice: ManufacturerService,
 		private featureService: FeatureService,
@@ -41,7 +39,7 @@ export class ProductService {
 		}
 
 		const filters = this.createFilter(dto)
-		const { perPage, skip } = this.paginationService.getPagination(dto)
+		const { perPage, skip } = this.getPagination(dto)
 		const defaultIdSort = [
 			{ id: 'asc' }
 		] as Prisma.ProductOrderByWithRelationInput[]
@@ -89,6 +87,15 @@ export class ProductService {
 			)
 
 		return filters.length ? { AND: filters } : {}
+	}
+
+	private getPagination(dto: GetAllProductDto, defaultPerPage = 8) {
+		const page = dto.page ? +dto.page : 1
+		const perPage = dto.perPage ? +dto.perPage : defaultPerPage
+
+		const skip = (page - 1) * perPage
+
+		return { perPage, skip }
 	}
 
 	private getSortOption(
