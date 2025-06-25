@@ -74,7 +74,7 @@ export class MinioService {
 	}
 
 	async forceUploadMany(images: Express.Multer.File[]) {
-		//delete all images, than
+		await this.deleteAll()
 		return await Promise.all(
 			images.map(async image => {
 				await this.uploadFile(image)
@@ -83,6 +83,14 @@ export class MinioService {
 					name: image.originalname
 				}
 			})
+		)
+	}
+
+	async deleteAll() {
+		const files = await this.listFiles()
+		await this.minioClient.removeObjects(
+			this.bucketName,
+			files.map(f => f.originalname)
 		)
 	}
 

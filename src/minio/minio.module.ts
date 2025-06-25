@@ -28,6 +28,7 @@ import { MinioService } from './minio.service'
 				if (!exists) {
 					await client.makeBucket(bucket, 'us-east-1')
 				}
+				// await client.setBucketPolicy(bucket, 'public')
 				return client
 			}
 		},
