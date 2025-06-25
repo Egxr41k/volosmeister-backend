@@ -81,7 +81,12 @@ export class ProductService {
 				)
 			)
 
-		if (dto.categoryId) filters.push(this.getCategoryFilter(+dto.categoryId))
+		if (dto.categoriesIds)
+			filters.push(
+				this.getCategoryFilter(
+					dto.categoriesIds.split('|').map(raiting => +raiting)
+				)
+			)
 
 		return filters.length ? { AND: filters } : {}
 	}
@@ -165,9 +170,9 @@ export class ProductService {
 		}
 	}
 
-	private getCategoryFilter(categoryId: number): Prisma.ProductWhereInput {
+	private getCategoryFilter(categoriesIds: number[]): Prisma.ProductWhereInput {
 		return {
-			categoryId
+			categoryId: { in: categoriesIds }
 		}
 	}
 
