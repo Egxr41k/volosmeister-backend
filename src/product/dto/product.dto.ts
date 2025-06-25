@@ -5,8 +5,13 @@ export class ProductDto implements Prisma.ProductUpdateInput {
 	@IsString()
 	name: string
 
-	@IsNumber()
-	price: number
+	@IsNumber({}, { each: true })
+	@ArrayMinSize(1)
+	prices: number[]
+
+	@IsString({ each: true })
+	@ArrayMinSize(1)
+	sizes: string[]
 
 	@IsOptional()
 	@IsString()
@@ -19,6 +24,10 @@ export class ProductDto implements Prisma.ProductUpdateInput {
 	@IsString({ each: true })
 	@ArrayMinSize(1)
 	images: string[]
+
+	@IsString({ each: true })
+	@IsOptional()
+	ingredients?: string[]
 
 	@IsString()
 	categoryName: string

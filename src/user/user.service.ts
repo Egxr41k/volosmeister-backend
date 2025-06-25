@@ -33,7 +33,7 @@ export class UserService {
 					select: {
 						id: true,
 						name: true,
-						price: true,
+						minPrice: true,
 						images: true,
 						slug: true,
 						category: {

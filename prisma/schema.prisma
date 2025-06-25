@@ -34,13 +34,14 @@ model Product {
   name        String @unique
   slug        String @unique
   description String
-  //count       Int
+  minPrice    Int    @default(0) @map("min_price")
 
-  price  Int
+  prices Int[]
+  sizes  String[]
+
   images String[]
 
   instructionForUse String   @map("instruction_for_use")
-  availableSizes    Int[]    @map("available_sizes")
   ingredients       String[]
 
   orderItems OrderItem[]

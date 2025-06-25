@@ -91,9 +91,9 @@ export class ProductService {
 	): Prisma.ProductOrderByWithRelationInput[] {
 		switch (sort) {
 			case EnumProductSort.LOW_PRICE:
-				return [{ price: 'asc' }]
+				return [{ minPrice: 'asc' }]
 			case EnumProductSort.HIGH_PRICE:
-				return [{ price: 'desc' }]
+				return [{ minPrice: 'desc' }]
 			case EnumProductSort.OLDEST:
 				return [{ createAt: 'asc' }]
 			default: // case EnumProductSort.NEWEST:
@@ -161,7 +161,7 @@ export class ProductService {
 		}
 
 		return {
-			price: priceFilter
+			minPrice: priceFilter
 		}
 	}
 
@@ -252,22 +252,14 @@ export class ProductService {
 	}
 
 	async create(dto: ProductDto) {
-		const {
-			description,
-			images,
-			price,
-			name,
-			categoryName,
-			manufacturerName,
-			instructionForUse
-		} = dto
+		const { categoryName, manufacturerName, ...data } = dto
 
 		const existingProduct = await this.prisma.product.findUnique({
-			where: { name }
+			where: { name: data.name }
 		})
 
 		if (existingProduct) {
-			throw new Error(`Product with name ${name} already exists`)
+			throw new Error(`Product with name ${data.name} already exists`)
 		}
 
 		const category = await this.categoryService.createIfNotExist(categoryName)
@@ -276,14 +268,11 @@ export class ProductService {
 
 		return this.prisma.product.create({
 			data: {
-				name: name,
-				description: description ?? '',
-				instructionForUse: instructionForUse ?? '',
-				images: images,
-				price: price,
-				slug: slug(name),
+				slug: slug(data.name),
 				categoryId: category.id,
-				manufacturerId: manufacturer.id
+				manufacturerId: manufacturer.id,
+				minPrice: Math.min(...dto.prices),
+				...data
 			},
 			select: productReturnObjectFullest
 		})
@@ -358,7 +347,7 @@ export class ProductService {
 	}
 
 	async update(id: number, dto: UpdateProductDto) {
-		const { description, images, price, name, categoryName, manufacturerName } =
+		const { categoryName, manufacturerName, features, properties, ...data } =
 			dto
 
 		const existingProduct = await this.prisma.product.findUnique({
@@ -376,7 +365,9 @@ export class ProductService {
 
 		//update slug if name changed
 		const newSlug =
-			existingProduct.name === name ? existingProduct.slug : slug(name)
+			existingProduct.name === data.name
+				? existingProduct.slug
+				: slug(data.name)
 
 		await this.featureService.updateMany(id, dto.features)
 		await this.propertyService.updateMany(id, dto.properties)
@@ -386,10 +377,6 @@ export class ProductService {
 				id
 			},
 			data: {
-				description,
-				images,
-				price,
-				name,
 				slug: newSlug,
 				category: {
 					connect: {
@@ -400,7 +387,11 @@ export class ProductService {
 					connect: {
 						id: manufacturer.id
 					}
-				}
+				},
+				minPrice: dto.prices
+					? Math.min(...dto.prices)
+					: existingProduct.minPrice,
+				...data
 			},
 			select: productReturnObjectFullest
 		})

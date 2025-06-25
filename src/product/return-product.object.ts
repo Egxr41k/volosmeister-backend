@@ -8,7 +8,9 @@ import { returnReviewObject } from 'src/review/return-review.object'
 export const productReturnObject: Prisma.ProductSelect = {
 	id: true,
 	name: true,
-	price: true,
+	prices: true,
+	sizes: true,
+	minPrice: true,
 	createAt: true,
 	slug: true,
 	category: { select: returnCategoryObject },
@@ -16,6 +18,7 @@ export const productReturnObject: Prisma.ProductSelect = {
 	images: true,
 	description: true,
 	instructionForUse: true,
+	ingredients: true,
 	reviews: { select: returnReviewObject, orderBy: { createAt: 'desc' } },
 	features: { select: featureReturnObject },
 	properties: { select: propertyReturnObject }
