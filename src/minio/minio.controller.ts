@@ -28,7 +28,6 @@ export class MinioController {
 	@UseInterceptors(FileInterceptor('file'))
 	async uploadImage(@UploadedFile() file: Express.Multer.File) {
 		await this.minioService.uploadFile(file)
-		//return this.minioService.getFileStaticUrl(file.originalname)
 	}
 
 	@Delete('image/:fileName')

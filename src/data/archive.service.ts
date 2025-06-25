@@ -4,7 +4,7 @@ import archiver from 'archiver'
 import { createWriteStream } from 'fs'
 import { mkdir, mkdtemp, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
-import { basename, extname, join } from 'path'
+import { join } from 'path'
 import unzipper from 'unzipper'
 import { ImageService } from './image.service'
 import { JsonService } from './json.service'
@@ -32,11 +32,14 @@ export class ArchiveService {
 
 		await unzipper.Open.file(zipPath).then(d => d.extract({ path: tempDir }))
 
-		const outputDir = join(tempDir, basename(zipPath, extname(zipPath)))
+		//const outputDir = join(tempDir, basename(zipPath, extname(zipPath)))
+		const outputDir = tempDir
 
 		// console.log('Extracting archive:', zipPath)
 		// console.log('Temporary directory:', tempDir)
+		// ;(await readdir(tempDir)).map(file => console.log(file))
 		// console.log('Extracted to:', outputDir)
+		// ;(await readdir(outputDir)).map(file => console.log(file))
 
 		const products = await this.jsonService.readProducts(outputDir)
 		const categories = await this.jsonService.readCategories(outputDir)
