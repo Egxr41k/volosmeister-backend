@@ -11,7 +11,7 @@ export const productReturnObject: Prisma.ProductSelect = {
 	prices: true,
 	sizes: true,
 	minPrice: true,
-	createAt: true,
+	createdAt: true,
 	slug: true,
 	category: { select: returnCategoryObject },
 	manufacturer: { select: returnManufacturerObject },
@@ -19,7 +19,7 @@ export const productReturnObject: Prisma.ProductSelect = {
 	description: true,
 	instructionForUse: true,
 	ingredients: true,
-	reviews: { select: returnReviewObject, orderBy: { createAt: 'desc' } },
+	reviews: { select: returnReviewObject, orderBy: { createdAt: 'desc' } },
 	features: { select: featureReturnObject },
 	properties: { select: propertyReturnObject }
 }

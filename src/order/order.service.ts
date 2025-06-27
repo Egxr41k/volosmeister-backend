@@ -12,7 +12,7 @@ export class OrderService {
 	async getAll() {
 		return this.prisma.order.findMany({
 			orderBy: {
-				createAt: 'desc'
+				createdAt: 'desc'
 			},
 
 			include: {
@@ -37,7 +37,7 @@ export class OrderService {
 				email: user.email
 			},
 			orderBy: {
-				createAt: 'desc'
+				createdAt: 'desc'
 			},
 			include: {
 				items: {

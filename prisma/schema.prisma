@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   email    String @unique
@@ -28,7 +28,7 @@ model User {
 
 model Product {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   name        String @unique
@@ -62,7 +62,7 @@ model Product {
 
 model Feature {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   title       String
@@ -75,7 +75,7 @@ model Feature {
 
 model Property {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   name  String
@@ -87,7 +87,7 @@ model Property {
 
 model Category {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   name String @unique
@@ -102,7 +102,7 @@ model Category {
 
 model Manufacturer {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   name String @unique
@@ -113,7 +113,7 @@ model Manufacturer {
 
 model Review {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   rating Int
@@ -128,7 +128,7 @@ model Review {
 
 model OrderItem {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   quantity Int
@@ -145,7 +145,7 @@ model OrderItem {
 
 model Order {
   id        Int      @id @default(autoincrement())
-  createAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   status EnumOrderStatus @default(PENDING)

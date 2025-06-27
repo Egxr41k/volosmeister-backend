@@ -107,9 +107,9 @@ export class ProductService {
 			case EnumProductSort.HIGH_PRICE:
 				return [{ minPrice: 'desc' }]
 			case EnumProductSort.OLDEST:
-				return [{ createAt: 'asc' }]
+				return [{ createdAt: 'asc' }]
 			default: // case EnumProductSort.NEWEST:
-				return [{ createAt: 'desc' }]
+				return [{ createdAt: 'desc' }]
 		}
 	}
 
@@ -226,7 +226,7 @@ export class ProductService {
 				}
 			},
 			orderBy: {
-				createAt: 'desc'
+				createdAt: 'desc'
 			},
 			select: productReturnObjectFullest
 		})
@@ -255,7 +255,7 @@ export class ProductService {
 				}
 			},
 			orderBy: {
-				createAt: 'desc'
+				createdAt: 'desc'
 			},
 			select: productReturnObject
 		})
