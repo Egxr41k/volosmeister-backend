@@ -14,6 +14,7 @@ export class OrderService {
 			orderBy: {
 				createAt: 'desc'
 			},
+
 			include: {
 				items: {
 					include: {
@@ -27,9 +28,13 @@ export class OrderService {
 	}
 
 	async getByUserId(userId: number) {
+		const user = await this.prisma.user.findUnique({
+			where: { id: userId },
+			select: { email: true }
+		})
 		return this.prisma.order.findMany({
 			where: {
-				userId
+				email: user.email
 			},
 			orderBy: {
 				createAt: 'desc'
@@ -46,23 +51,25 @@ export class OrderService {
 		})
 	}
 
-	async placeOrder(dto: OrderDto, userId: number) {
-		const total = dto.items.reduce((acc, item) => {
-			return acc + item.price * item.quantity
-		}, 0)
-
+	async placeOrder(dto: OrderDto) {
+		const { items, ...orderData } = dto
 		const order = await this.prisma.order.create({
 			data: {
-				status: dto.status,
+				...orderData,
 				items: {
-					create: dto.items
-				},
-				total,
-				user: {
-					connect: {
-						id: userId
-					}
+					create: items.map(item => ({
+						quantity: item.quantity,
+						price: item.price,
+						product: {
+							connect: { id: item.productId }
+						}
+					}))
 				}
+				// user: {
+				// 	connect: {
+				// 		id: userId
+				// 	}
+				// }
 			}
 		})
 

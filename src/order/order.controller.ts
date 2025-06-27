@@ -11,7 +11,6 @@ import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
 import { OrderDto } from './order.dto'
 import { OrderService } from './order.service'
-import { PaymentStatusDto } from './payment-status.dto'
 
 @Controller('orders')
 export class OrderController {
@@ -33,13 +32,8 @@ export class OrderController {
 	@HttpCode(200)
 	@Post()
 	@Auth()
-	placeHolder(@Body() dto: OrderDto, @CurrentUser('id') userId: number) {
-		return this.orderService.placeOrder(dto, userId)
-	}
-
-	@HttpCode(200)
-	@Post()
-	async updateStatus(@Body() dto: PaymentStatusDto) {
-		return this.orderService.updateStatus(dto)
+	placeHolder(@Body() dto: OrderDto) {
+		//, @CurrentUser('id') userId: number
+		return this.orderService.placeOrder(dto)
 	}
 }

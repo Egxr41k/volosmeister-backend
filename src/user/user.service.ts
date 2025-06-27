@@ -6,6 +6,7 @@ import {
 import { Prisma, User } from '@prisma/client'
 import { hash } from 'argon2'
 import { PrismaService } from 'src/prisma.service'
+import { productReturnObject } from 'src/product/return-product.object'
 import { returnUserObject } from './return-user.object'
 import { UserDto } from './user.dto'
 
@@ -30,19 +31,7 @@ export class UserService {
 			select: {
 				...returnUserObject,
 				favorites: {
-					select: {
-						id: true,
-						name: true,
-						minPrice: true,
-						images: true,
-						slug: true,
-						category: {
-							select: {
-								slug: true
-							}
-						},
-						reviews: true
-					}
+					select: productReturnObject
 				},
 				...selectObject
 			}
