@@ -3,6 +3,7 @@ import {
 	Controller,
 	Get,
 	HttpCode,
+	Param,
 	Post,
 	UsePipes,
 	ValidationPipe
@@ -20,6 +21,12 @@ export class OrderController {
 	@Auth('admin')
 	getAll() {
 		return this.orderService.getAll()
+	}
+
+	@Get(':id')
+	@Auth('admin')
+	async getById(@Param('id') id: string) {
+		return this.orderService.byId(+id)
 	}
 
 	@Get('/by-user')

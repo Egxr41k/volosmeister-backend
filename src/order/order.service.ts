@@ -14,7 +14,21 @@ export class OrderService {
 			orderBy: {
 				createdAt: 'desc'
 			},
+			include: {
+				items: {
+					include: {
+						product: {
+							select: productReturnObject
+						}
+					}
+				}
+			}
+		})
+	}
 
+	async byId(id: number) {
+		return this.prisma.order.findUnique({
+			where: { id },
 			include: {
 				items: {
 					include: {
