@@ -48,6 +48,13 @@ export class ProductController {
 		return this.productService.byCategory(categorySlug)
 	}
 
+	@Get('by-manufacturer/:manufacturerSlug')
+	async getProductsByManufacturer(
+		@Param('manufacturerSlug') manufacturerSlug: string
+	) {
+		return this.productService.byManufacturer(manufacturerSlug)
+	}
+
 	@UsePipes(new ValidationPipe())
 	@Post('create')
 	@Auth('admin')

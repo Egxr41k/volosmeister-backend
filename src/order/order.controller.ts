@@ -23,16 +23,16 @@ export class OrderController {
 		return this.orderService.getAll()
 	}
 
+	@Get('by-user')
+	@Auth()
+	getByUserId(@CurrentUser('id') userId: number) {
+		return this.orderService.getByUserId(userId)
+	}
+
 	@Get(':id')
 	@Auth('admin')
 	async getById(@Param('id') id: string) {
 		return this.orderService.byId(+id)
-	}
-
-	@Get('/by-user')
-	@Auth()
-	getByUserId(@CurrentUser('id') userId: number) {
-		return this.orderService.getByUserId(userId)
 	}
 
 	@UsePipes(new ValidationPipe())

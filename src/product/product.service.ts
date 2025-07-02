@@ -238,6 +238,25 @@ export class ProductService {
 		return products
 	}
 
+	async byManufacturer(manufacturerSlug: string) {
+		const manufacturer = await this.manufacturerSevice.bySlug(manufacturerSlug)
+		const products = await this.prisma.product.findMany({
+			where: {
+				manufacturerId: manufacturer.id
+			},
+			orderBy: {
+				createdAt: 'desc'
+			},
+			select: productReturnObjectFullest
+		})
+
+		if (!products || products.length === 0) {
+			throw new NotFoundException('Products not found')
+		}
+
+		return products
+	}
+
 	async getSimilar(id: number) {
 		const currentProduct = await this.byId(id)
 
