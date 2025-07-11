@@ -17,6 +17,7 @@ services:
     build:
       context: ../volosmeister-frontend
       dockerfile: Dockerfile
+      no_cache: true
     depends_on:
       - backend
     networks:
@@ -24,7 +25,10 @@ services:
 
   backend:
     container_name: backend
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      no_cache: true
     depends_on:
       - postgres
       - minio
