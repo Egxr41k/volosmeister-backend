@@ -19,3 +19,4 @@ jobs:
           cd ~/volosmeister/volosmeister-backend
           git pull origin master
           docker compose up --build --force-recreate -d backend
+          docker restart nginx
